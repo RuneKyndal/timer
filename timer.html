@@ -5,55 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="HeliTimer">
-    
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#000000">
 
-    <title>Helicopter Flight Timer v1.19</title>
+    <title>Helicopter Flight Timer v1.20</title>
     <style>
         body { background: #fff; color: #000; font-family: sans-serif; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; -webkit-tap-highlight-color: transparent; }
-        h1 { font-size: 1.5rem; margin: 5px 0; border-bottom: 3px solid #000; width: 98%; max-width: 600px; text-align: center; }
+        h1 { font-size: 1.3rem; margin: 5px 0 10px 0; border-bottom: 2px solid #000; width: 100%; max-width: 500px; text-align: center; padding-bottom: 5px; }
         
-        .ui-element { width: 98%; max-width: 600px; box-sizing: border-box; margin-bottom: 8px; }
+        .ui-element { width: 100%; max-width: 500px; box-sizing: border-box; margin-bottom: 10px; }
 
-        .timer-row { display: flex; align-items: center; justify-content: space-between; padding: 12px; border: 2px solid #000; border-radius: 10px; }
-        .label { font-size: 1rem; font-weight: bold; width: 60px; }
+        .timer-row { display: flex; align-items: center; justify-content: space-between; padding: 10px; border: 2px solid #000; border-radius: 8px; }
+        .label { font-size: 0.9rem; font-weight: bold; width: 50px; }
         
-        .controls { display: flex; gap: 8px; flex-grow: 1; justify-content: center; }
+        .controls { display: flex; gap: 5px; }
         
-        button { font-weight: bold; border-radius: 8px; border: 2px solid #000; cursor: pointer; text-transform: uppercase; touch-action: manipulation; }
+        button { font-weight: bold; border-radius: 6px; border: 2px solid #000; cursor: pointer; text-transform: uppercase; touch-action: manipulation; }
         
-        /* High-Visibility Buttons */
-        .btn-timer { min-height: 60px; min-width: 85px; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; }
+        /* Smaller, phone-friendly buttons */
+        .btn-timer { padding: 10px 8px; min-width: 55px; font-size: 0.85rem; }
         
         .btn-start { background: #00ff00; color: #000; }
         .btn-stop { background: #ff0000; color: #fff; }
         .btn-stop:disabled { background: #660000; color: #aaa; opacity: 0.6; }
-        .btn-row-reset { background: #ddd; font-size: 0.9rem; min-width: 60px; }
+        .btn-row-reset { background: #ddd; min-width: 45px; }
         
-        .time-display { font-family: monospace; font-size: 1.4rem; font-weight: bold; min-width: 100px; text-align: right; }
+        .time-display { font-family: monospace; font-size: 1.2rem; font-weight: bold; min-width: 85px; text-align: right; }
 
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .stat-box { background: #f0f0f0; padding: 12px; border: 2px solid #000; border-radius: 10px; font-weight: bold; text-align: center; }
-        .ts-info { font-size: 0.75rem; color: #444; display: block; margin-bottom: 6px; min-height: 2.5em; }
-        .total-hms { font-size: 1.4rem; font-family: monospace; display: block; border-top: 1px solid #aaa; margin-top: 6px; padding-top: 6px; }
-        .total-dec { font-size: 1.1rem; font-family: monospace; color: #222; display: block; margin-top: 4px; }
+        .stat-box { background: #f0f0f0; padding: 10px; border: 2px solid #000; border-radius: 8px; font-weight: bold; text-align: center; }
+        .ts-info { font-size: 0.7rem; color: #444; display: block; margin-bottom: 4px; min-height: 2.5em; }
+        .total-hms { font-size: 1.2rem; font-family: monospace; display: block; border-top: 1px solid #aaa; margin-top: 4px; padding-top: 4px; }
+        .total-dec { font-size: 1rem; font-family: monospace; color: #222; display: block; margin-top: 2px; }
 
-        .action-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 15px; }
-        .btn-act { padding: 20px 0; color: #fff; font-size: 1rem; }
+        .action-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px; }
+        .btn-act { padding: 15px 0; color: #fff; font-size: 0.85rem; }
         .b-reset { background: #000; }
         .b-save { background: #007bff; }
         .b-load { background: #6c757d; }
 
-        #log-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 100; overflow-y: auto; padding: 15px; box-sizing: border-box; }
-        .log-table { width: 100%; border-collapse: collapse; font-size: 0.7rem; margin: 20px 0; }
-        .log-table th, .log-table td { border: 1px solid #000; padding: 6px; text-align: center; }
+        /* Logbook Overlay */
+        #log-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 100; overflow-y: auto; padding: 10px; box-sizing: border-box; }
+        .log-table { width: 100%; border-collapse: collapse; font-size: 0.7rem; margin: 15px 0; }
+        .log-table th, .log-table td { border: 1px solid #000; padding: 4px; text-align: center; }
         
-        .log-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
-        .btn-log-back { background: #28a745; color: white; padding: 20px; font-size: 1.1rem; }
-        .btn-log-del { background: #dc3545; color: white; padding: 20px; font-size: 1.1rem; }
+        .log-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; max-width: 500px; margin: 0 auto; }
+        .btn-log-back { background: #28a745; color: white; padding: 15px; font-size: 1rem; }
+        .btn-log-del { background: #dc3545; color: white; padding: 15px; font-size: 1rem; }
+        .log-header { text-align: center; font-size: 1.3rem; margin: 5px 0 15px 0; border-bottom: 2px solid #000; padding-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -112,7 +111,7 @@
     </div>
 
     <div id="log-page">
-        <h1>Flight Logbook</h1>
+        <div class="log-header">Flight Logbook</div>
         <div class="log-btn-row">
             <button class="btn-log-back" onclick="toggleLog(false)">BACK</button>
             <button class="btn-log-del" onclick="clearAll()">DELETE LOG</button>
@@ -126,20 +125,8 @@
     </div>
 
 <script>
-    // SELF-REGISTERING SERVICE WORKER (For Offline Support)
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            const code = `
-                const cacheName = 'heli-v1.19';
-                self.addEventListener('install', e => e.waitUntil(caches.open(cacheName).then(c => c.addAll(['./']))));
-                self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
-            `;
-            const blob = new Blob([code], {type: 'text/javascript'});
-            navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(err => console.log("Offline mode limited: Direct file open detected."));
-        });
-    }
-
     let t = { e1:{e:0,s:null,i:null,r:false}, e2:{e:0,s:null,i:null,r:false}, fl:{e:0,s:null,i:null,r:false}, gE:{start:null,stop:null} };
+    const STORE_KEY = 'heliLogV20';
 
     function getCleanTime(dateObj) {
         let d = dateObj ? new Date(dateObj) : new Date();
@@ -167,19 +154,24 @@
         t[k].r = true; t[k].s = Date.now() - t[k].e;
         if(k === 'fl' && !t.fl.startTS) t.fl.startTS = getCleanTime();
         if((k === 'e1' || k === 'e2') && !t.gE.start) { t.gE.start = Date.now(); t.gE.stop = null; }
+        
         t[k].i = setInterval(() => {
             t[k].e = Date.now() - t[k].s;
             document.getElementById(k + '-disp').textContent = fmtHMS(t[k].e);
             updateUI();
         }, 1000);
-        document.getElementById(k + '-start').disabled = true; document.getElementById(k + '-stop').disabled = false;
+        
+        document.getElementById(k + '-start').disabled = true; 
+        document.getElementById(k + '-stop').disabled = false;
     }
 
     function stopT(k) {
         t[k].r = false; clearInterval(t[k].i);
         if(k === 'fl') t.fl.stopTS = getCleanTime();
         if((k === 'e1' || k === 'e2') && !t.e1.r && !t.e2.r) t.gE.stop = Date.now();
-        document.getElementById(k + '-start').disabled = false; document.getElementById(k + '-stop').disabled = true;
+        
+        document.getElementById(k + '-start').disabled = false; 
+        document.getElementById(k + '-stop').disabled = true;
         updateUI();
     }
 
@@ -192,27 +184,48 @@
 
     function saveLog() {
         try {
-            const log = JSON.parse(localStorage.getItem('heliLogV19') || '[]');
+            let logData = localStorage.getItem(STORE_KEY);
+            let log = logData ? JSON.parse(logData) : [];
             let eMs = (t.gE.stop || (t.gE.start ? Date.now() : t.gE.start)) - t.gE.start || 0;
+            
             log.push({
                 d: new Date().toLocaleDateString(),
                 eb: document.getElementById('e-ts').textContent, en: (eMs / 3600000).toFixed(4),
                 fb: document.getElementById('f-ts').textContent, fl: (t.fl.e / 3600000).toFixed(4)
             });
-            localStorage.setItem('heliLogV19', JSON.stringify(log));
-            alert("Flight Logged.");
-        } catch(e) { alert("Save failed: Device storage restricted."); }
-    }
-
-    function toggleLog(show) {
-        document.getElementById('log-page').style.display = show ? 'block' : 'none';
-        if(show) {
-            const data = JSON.parse(localStorage.getItem('heliLogV19') || '[]');
-            document.getElementById('log-body').innerHTML = data.map(i => `<tr><td>${i.d}</td><td>${i.eb}</td><td>${i.en}</td><td>${i.fb}</td><td>${i.fl}</td></tr>`).reverse().join('');
+            
+            localStorage.setItem(STORE_KEY, JSON.stringify(log));
+            alert("Flight Saved Locally.");
+        } catch(e) { 
+            alert("Storage Error: Your browser is blocking local saves. Check privacy settings."); 
         }
     }
 
-    function clearAll() { if(confirm("Clear all records?")) { localStorage.removeItem('heliLogV19'); toggleLog(true); } }
+    function toggleLog(show) {
+        document.getElementById('main-timer-page').style.display = show ? 'none' : 'flex';
+        document.getElementById('log-page').style.display = show ? 'block' : 'none';
+        
+        if(show) {
+            try {
+                let logData = localStorage.getItem(STORE_KEY);
+                let data = logData ? JSON.parse(logData) : [];
+                document.getElementById('log-body').innerHTML = data.map(i => `<tr><td>${i.d}</td><td>${i.eb}</td><td>${i.en}</td><td>${i.fb}</td><td>${i.fl}</td></tr>`).reverse().join('');
+            } catch(e) {
+                document.getElementById('log-body').innerHTML = "<tr><td colspan='5'>Unable to load data.</td></tr>";
+            }
+        }
+    }
+
+    function clearAll() { 
+        if(confirm("Permanently delete all flight logs?")) { 
+            try {
+                localStorage.removeItem(STORE_KEY); 
+                toggleLog(true); 
+            } catch(e) {
+                alert("Error clearing data.");
+            }
+        } 
+    }
 </script>
 </body>
 </html>

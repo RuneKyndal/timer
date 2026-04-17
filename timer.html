@@ -5,31 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>HeliTimer v1.22</title>
+    <meta name="theme-color" content="#000000">
+
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiSGVsaVRpbWVyIiwic2hvcnRfbmFtZSI6IkhlbGlUaW1lciIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwic3RhcnRfdXJsIjoiLi8iLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI2ZmZmZmZiIsInRoZW1lX2NvbG9yIjoiIzAwMDAwMCIsImljb25zIjpbeyJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0ZFc1MGFYTjBhVzl1UFZpSXBCOWllRDBuIiwic2l6ZXMiOiI1MTJ4NTEyIiwidHlwZSI6ImltYWdlL3N2Zyt4bWwiLCJwdXJwb3NlIjoiYW55In1dfQ==">
+
+    <title>HeliTimer v1.23</title>
     <style>
         body { background: #fff; color: #000; font-family: sans-serif; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         .ui-element { width: 100%; max-width: 400px; margin-bottom: 10px; }
         .timer-row { display: flex; align-items: center; justify-content: space-between; padding: 8px; border: 2px solid #000; border-radius: 8px; }
         .label { font-size: 0.8rem; font-weight: bold; width: 45px; }
         .controls { display: flex; gap: 4px; }
-        button { font-weight: bold; border-radius: 5px; border: 2px solid #000; cursor: pointer; text-transform: uppercase; }
-        
-        /* Smaller buttons for phone scaling */
+        button { font-weight: bold; border-radius: 5px; border: 2px solid #000; cursor: pointer; text-transform: uppercase; -webkit-tap-highlight-color: transparent; }
         .btn-timer { padding: 8px 4px; min-width: 50px; font-size: 0.75rem; }
         .btn-start { background: #00ff00; }
         .btn-stop { background: #ff0000; color: #fff; }
         .btn-stop:disabled { background: #600; opacity: 0.5; }
         .btn-row-reset { background: #ccc; min-width: 40px; }
-        
         .time-display { font-family: monospace; font-size: 1.1rem; font-weight: bold; min-width: 80px; text-align: right; }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
         .stat-box { background: #f0f0f0; padding: 8px; border: 2px solid #000; border-radius: 8px; text-align: center; }
         .ts-info { font-size: 0.65rem; height: 2.4em; display: block; }
         .total-hms { font-size: 1.1rem; font-family: monospace; display: block; border-top: 1px solid #000; margin-top: 4px; }
-        
         .action-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 10px; }
         .btn-act { padding: 12px 0; color: #fff; font-size: 0.8rem; }
-        
         #log-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 999; padding: 10px; box-sizing: border-box; overflow-y: auto; }
         .log-table { width: 100%; border-collapse: collapse; font-size: 0.65rem; }
         .log-table th, .log-table td { border: 1px solid #000; padding: 3px; text-align: center; }
@@ -38,7 +37,7 @@
 <body>
 
 <div id="main-timer-page" class="ui-element">
-    <h2 style="text-align:center; margin: 0 0 10px 0;">Flight Timer v1.22</h2>
+    <h2 style="text-align:center; margin: 0 0 10px 0;">Flight Timer v1.23</h2>
     
     <div class="timer-row ui-element">
         <div class="label">ENG 1</div>
@@ -82,14 +81,14 @@
     </div>
 
     <div class="action-row ui-element">
-        <button class="btn-act" style="background:#000;" onclick="location.reload()">RESET</button>
+        <button class="btn-act" style="background:#000;" onclick="location.reload()">RELOAD</button>
         <button class="btn-act" style="background:#007bff;" onclick="saveLog()">SAVE</button>
         <button class="btn-act" style="background:#666;" onclick="showLog()">LOGS</button>
     </div>
 </div>
 
 <div id="log-page">
-    <button onclick="hideLog()" style="background:#28a745; color:#fff; width:100%; padding:15px; font-weight:bold; margin-bottom:10px;">BACK TO TIMER</button>
+    <button onclick="hideLog()" style="background:#28a745; color:#fff; width:100%; padding:15px; font-weight:bold; margin-bottom:10px; border: 2px solid #000;">BACK TO TIMER</button>
     <table class="log-table">
         <thead><tr><th>Date</th><th>Eng Block</th><th>H</th><th>Flt Block</th><th>H</th></tr></thead>
         <tbody id="log-body"></tbody>
@@ -98,6 +97,25 @@
 </div>
 
 <script>
+    // OFFLINE SERVICE WORKER (Must be served via HTTPS like GitHub Pages)
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            const swCode = `
+                const CACHE = 'heli-cache-v1.23';
+                self.addEventListener('install', (e) => {
+                    e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', 'timer.html'])));
+                    self.skipWaiting();
+                });
+                self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
+                self.addEventListener('fetch', (e) => {
+                    e.respondWith(caches.match(e.request).then((res) => res || fetch(e.request)));
+                });
+            `;
+            const blob = new Blob([swCode], { type: 'text/javascript' });
+            navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(e => console.log(e));
+        });
+    }
+
     let timers = { 
         e1: { elapsed: 0, start: null, interval: null, running: false },
         e2: { elapsed: 0, start: null, interval: null, running: false },
@@ -122,7 +140,6 @@
         let engMs = (timers.engGlobal.end || (timers.engGlobal.start ? Date.now() : timers.engGlobal.start)) - timers.engGlobal.start || 0;
         document.getElementById('e-hms').innerText = format(engMs);
         document.getElementById('e-ts').innerText = (timers.engGlobal.start ? getTimeStr(timers.engGlobal.start) : "--:--") + " to " + (timers.engGlobal.end ? getTimeStr(timers.engGlobal.end) : "--:--");
-        
         document.getElementById('f-hms').innerText = format(timers.fl.elapsed);
         document.getElementById('f-ts').innerText = (timers.fl.tsS || "--:--") + " to " + (timers.fl.tsE || "--:--");
     }
@@ -132,13 +149,11 @@
         timers[id].start = Date.now() - timers[id].elapsed;
         if (id === 'fl' && !timers.fl.tsS) timers.fl.tsS = getTimeStr();
         if ((id === 'e1' || id === 'e2') && !timers.engGlobal.start) timers.engGlobal.start = Date.now();
-        
         timers[id].interval = setInterval(() => {
             timers[id].elapsed = Date.now() - timers[id].start;
             document.getElementById(id + '-disp').innerText = format(timers[id].elapsed);
             updateStats();
         }, 1000);
-        
         document.getElementById(id + '-start').disabled = true;
         document.getElementById(id + '-stop').disabled = false;
     }
@@ -148,7 +163,6 @@
         clearInterval(timers[id].interval);
         if (id === 'fl') timers.fl.tsE = getTimeStr();
         if ((id === 'e1' || id === 'e2') && !timers.e1.running && !timers.e2.running) timers.engGlobal.end = Date.now();
-        
         document.getElementById(id + '-start').disabled = false;
         document.getElementById(id + '-stop').disabled = true;
         updateStats();
@@ -172,16 +186,16 @@
             fb: document.getElementById('f-ts').innerText,
             fh: (timers.fl.elapsed / 3600000).toFixed(4)
         };
-        let log = JSON.parse(localStorage.getItem('hLogV22') || '[]');
+        let log = JSON.parse(localStorage.getItem('hLogV23') || '[]');
         log.push(entry);
-        localStorage.setItem('hLogV22', JSON.stringify(log));
+        localStorage.setItem('hLogV23', JSON.stringify(log));
         alert("Saved.");
     }
 
     function showLog() {
         document.getElementById('main-timer-page').style.display = 'none';
         document.getElementById('log-page').style.display = 'block';
-        let log = JSON.parse(localStorage.getItem('hLogV22') || '[]');
+        let log = JSON.parse(localStorage.getItem('hLogV23') || '[]');
         document.getElementById('log-body').innerHTML = log.map(i => `<tr><td>${i.date}</td><td>${i.eb}</td><td>${i.eh}</td><td>${i.fb}</td><td>${i.fh}</td></tr>`).reverse().join('');
     }
 
@@ -191,7 +205,7 @@
     }
 
     function clearLogs() {
-        if(confirm("Clear logbook?")) { localStorage.removeItem('hLogV22'); showLog(); }
+        if(confirm("Clear logbook?")) { localStorage.removeItem('hLogV23'); showLog(); }
     }
 </script>
 </body>

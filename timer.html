@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>Phil's flight timer V1.0</title>
+    <title>Phil's timer version 1.1</title>
     <link rel="manifest" href="timer.json">
     <style>
         body { 
@@ -42,11 +42,12 @@
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
         }
         .stat-box { 
-            background: #f0f0f0; padding: 10px; border: 2px solid #000; border-radius: 8px;
+            background: #f0f0f0; padding: 12px; border: 2px solid #000; border-radius: 8px;
             font-weight: bold; text-align: center;
         }
-        .val-large { font-size: 2.2rem; color: #000; display: block; font-family: monospace; }
-        .val-sub { font-size: 1rem; color: #666; }
+        .total-val { font-size: 1.8rem; font-family: monospace; display: block; margin-top: 5px; border-top: 1px solid #aaa; padding-top: 5px; }
+        .timestamp { font-size: 1.2rem; color: #000; }
+        .ts-label { font-size: 0.8rem; color: #555; text-transform: uppercase; margin-bottom: 2px; display: block; }
     </style>
 </head>
 <body>
@@ -85,23 +86,35 @@
 
     <div class="stats-grid">
         <div class="stat-box">
-            FLIGHT UP/DOWN
-            <div style="font-size: 1.2rem; margin: 10px 0;">
-                UP: <span id="up-time">--:--</span><br>
-                DN: <span id="down-time">--:--</span>
+            ENGINE RUN
+            <div style="margin: 8px 0;">
+                <span class="ts-label">Start</span>
+                <span class="timestamp" id="eng-first-start">--:--</span>
+                <div style="margin-top: 8px;">
+                    <span class="ts-label">Stop</span>
+                    <span class="timestamp" id="eng-last-stop">--:--</span>
+                </div>
+            </div>
+            <div class="total-val">
+                <span id="eng-run-hm">00:00</span>
+                <div style="font-size: 1.2rem;" id="eng-run-dec">0.0</div>
             </div>
         </div>
-        <div class="stat-box">
-            ENGINE RUN TIME
-            <span class="val-large" id="eng-run-hm">00:00</span>
-            <span class="val-sub" id="eng-run-dec">0.0h</span>
-        </div>
-    </div>
 
-    <div class="stats-grid">
-        <div class="stat-box" style="grid-column: span 2; background: #fff;">
-            FLIGHT HOURS (DECIMAL)
-            <span class="val-large" id="decimal-display">0.0h</span>
+        <div class="stat-box" style="background: #e6f3ff;">
+            FLIGHT TIME
+            <div style="margin: 8px 0;">
+                <span class="ts-label">UP</span>
+                <span class="timestamp" id="up-time">--:--</span>
+                <div style="margin-top: 8px;">
+                    <span class="ts-label">DN</span>
+                    <span class="timestamp" id="down-time">--:--</span>
+                </div>
+            </div>
+            <div class="total-val">
+                <span id="fl-run-hm">00:00</span>
+                <div style="font-size: 1.2rem;" id="fl-run-dec">0.0</div>
+            </div>
         </div>
     </div>
 
@@ -110,8 +123,13 @@
         e1: { elapsed: 0, start: null, interval: null, running: false },
         e2: { elapsed: 0, start: null, interval: null, running: false },
         fl: { elapsed: 0, start: null, interval: null, running: false },
-        globalEng: { elapsed: 0, start: null, interval: null }
+        globalEng: { startTime: null, stopTime: null, elapsed: 0, interval: null }
     };
+
+    function getTimeOfDay() {
+        let now = new Date();
+        return now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+    }
 
     function formatHMS(ms) {
         let s = Math.floor(ms / 1000);
@@ -127,27 +145,30 @@
         timers[key].running = true;
         timers[key].start = Date.now() - timers[key].elapsed;
         
-        // Flight Up Time
         if (key === 'fl') {
-            let now = new Date();
-            document.getElementById('up-time').textContent = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+            document.getElementById('up-time').textContent = getTimeOfDay();
         }
 
-        // Global Engine Logic: Start if this is the FIRST engine to go on
-        if ((key === 'e1' || key === 'e2') && !timers.globalEng.interval) {
-            timers.globalEng.start = Date.now() - timers.globalEng.elapsed;
-            timers.globalEng.interval = setInterval(() => {
-                timers.globalEng.elapsed = Date.now() - timers.globalEng.start;
-                document.getElementById('eng-run-hm').textContent = formatHM(timers.globalEng.elapsed);
-                document.getElementById('eng-run-dec').textContent = (timers.globalEng.elapsed / 3600000).toFixed(1) + "h";
-            }, 1000);
+        if (key === 'e1' || key === 'e2') {
+            if (!timers.globalEng.startTime) {
+                timers.globalEng.startTime = Date.now();
+                document.getElementById('eng-first-start').textContent = getTimeOfDay();
+            }
+            if (!timers.globalEng.interval) {
+                timers.globalEng.interval = setInterval(() => {
+                    let run = Date.now() - timers.globalEng.startTime;
+                    document.getElementById('eng-run-hm').textContent = formatHM(run);
+                    document.getElementById('eng-run-dec').textContent = (run / 3600000).toFixed(1);
+                }, 1000);
+            }
         }
 
         timers[key].interval = setInterval(() => {
             timers[key].elapsed = Date.now() - timers[key].start;
             document.getElementById(key + '-display').textContent = formatHMS(timers[key].elapsed);
             if (key === 'fl') {
-                document.getElementById('decimal-display').textContent = (timers[key].elapsed / 3600000).toFixed(1) + "h";
+                document.getElementById('fl-run-hm').textContent = formatHM(timers[key].elapsed);
+                document.getElementById('fl-run-dec').textContent = (timers[key].elapsed / 3600000).toFixed(1);
             }
         }, 1000);
 
@@ -160,14 +181,17 @@
         clearInterval(timers[key].interval);
         
         if (key === 'fl') {
-            let now = new Date();
-            document.getElementById('down-time').textContent = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+            document.getElementById('down-time').textContent = getTimeOfDay();
         }
 
-        // Global Engine Logic: Stop ONLY if BOTH engines are now off
         if ((key === 'e1' || key === 'e2') && !timers.e1.running && !timers.e2.running) {
             clearInterval(timers.globalEng.interval);
             timers.globalEng.interval = null;
+            timers.globalEng.stopTime = Date.now();
+            document.getElementById('eng-last-stop').textContent = getTimeOfDay();
+            let total = timers.globalEng.stopTime - timers.globalEng.startTime;
+            document.getElementById('eng-run-hm').textContent = formatHM(total);
+            document.getElementById('eng-run-dec').textContent = (total / 3600000).toFixed(1);
         }
 
         document.getElementById(key + '-start').disabled = false;
@@ -182,13 +206,15 @@
         if (key === 'fl') {
             document.getElementById('up-time').textContent = "--:--";
             document.getElementById('down-time').textContent = "--:--";
-            document.getElementById('decimal-display').textContent = "0.0h";
+            document.getElementById('fl-run-hm').textContent = "00:00";
+            document.getElementById('fl-run-dec').textContent = "0.0";
         }
-        // Reset Global Engine Run if both engines reset
-        if ((key === 'e1' || key === 'e2') && timers.e1.elapsed === 0 && timers.e2.elapsed === 0) {
-            timers.globalEng.elapsed = 0;
+        if ((key === 'e1' || key === 'e2') && !timers.e1.running && !timers.e2.running) {
+            timers.globalEng.startTime = null;
+            document.getElementById('eng-first-start').textContent = "--:--";
+            document.getElementById('eng-last-stop').textContent = "--:--";
             document.getElementById('eng-run-hm').textContent = "00:00";
-            document.getElementById('eng-run-dec').textContent = "0.0h";
+            document.getElementById('eng-run-dec').textContent = "0.0";
         }
     }
 

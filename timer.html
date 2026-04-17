@@ -44,7 +44,7 @@
 
         .mullah-label { font-size: 0.9rem; font-weight: bold; color: #28a745; text-transform: uppercase; }
         .mullah-display {
-            font-size: 2.5rem; font-weight: bold; color: #1e7e34; margin-top: 5px; font-family: monospace;
+            font-size: 2.2rem; font-weight: bold; color: #1e7e34; margin-top: 5px; font-family: monospace;
         }
 
         .time-display {
@@ -135,7 +135,7 @@
 
     <div class="mullah-box">
         <div class="mullah-label">Phils Mullah ($265/hr)</div>
-        <div class="mullah-display" id="mullah-out">$0.00</div>
+        <div class="mullah-display" id="mullah-out">$0.0000</div>
     </div>
 
     <button class="btn-reset-all" onclick="masterReset()">RESET ALL DATA</button>
@@ -160,7 +160,8 @@
 
     function updateMullah(ms) {
         let total = (ms / 3600000) * 265;
-        document.getElementById('mullah-out').textContent = "$" + total.toFixed(2);
+        // Using 4 decimals to ensure every second tick is visible
+        document.getElementById('mullah-out').textContent = "$" + total.toFixed(4);
     }
 
     function startTimer(key) {
@@ -181,7 +182,7 @@
                     let run = Date.now() - timers.globalEng.startTime;
                     document.getElementById('eng-run-hms').textContent = formatHMS(run);
                     document.getElementById('eng-run-dec').textContent = (run / 3600000).toFixed(1);
-                    updateMullah(run); // Real-time calculation
+                    updateMullah(run);
                 }, 1000);
             }
         }
@@ -238,7 +239,7 @@
             document.getElementById('eng-last-stop').textContent = "--:--";
             document.getElementById('eng-run-hms').textContent = "00:00:00";
             document.getElementById('eng-run-dec').textContent = "0.0";
-            document.getElementById('mullah-out').textContent = "$0.00";
+            document.getElementById('mullah-out').textContent = "$0.0000";
         }
     }
 

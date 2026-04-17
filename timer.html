@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Bell 214 Flight Timer</title>
+    <link rel="manifest" href="timer.json">
+    <style>
+        body { 
+            background: #fff; color: #000; font-family: sans-serif; 
+            margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center;
+        }
+        h1 { font-size: 2.2rem; margin-bottom: 30px; border-bottom: 4px solid #000; width: 100%; text-align: center; padding-bottom: 10px; }
+        
+        .timer-row {
+            width: 100%; max-width: 600px;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 25px; padding: 15px; border: 2px solid #ddd; border-radius: 12px;
+        }
+
+        .label { font-size: 1.4rem; font-weight: bold; width: 120px; }
+        
+        .controls { display: flex; gap: 10px; }
+        
+        button {
+            padding: 15px 25px; font-size: 1.2rem; font-weight: bold;
+            border-radius: 8px; border: none; cursor: pointer; color: #fff;
+        }
+        .btn-start { background: #28a745; } /* Green */
+        .btn-stop { background: #dc3545; }  /* Red */
+        button:disabled { background: #ccc; }
+
+        .time-display {
+            font-family: monospace; font-size: 1.8rem; font-weight: bold;
+            min-width: 140px; text-align: right;
+        }
+
+        /* Flight Section Specifics */
+        .flight-info {
+            width: 100%; max-width: 600px; margin-top: 20px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+            font-size: 1.2rem; font-weight: bold;
+        }
+        .info-box { background: #f8f9fa; padding: 15px; border-radius: 10px; border: 1px solid #000; }
+        .decimal-hrs { font-size: 2.5rem; color: #007aff; text-align: center; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>Bell 214 Flight Timer</h1>
+
+    <div class="timer-row">
+        <div class="label">Engine 1</div>
+        <div class="controls">
+            <button class="btn-start" id="e1-start" onclick="startTimer('e1')">START</button>
+            <button class="btn-stop" id="e1-stop" onclick="stopTimer('e1')" disabled>STOP</button>
+        </div>
+        <div class="time-display" id="e1-display">00:00:00</div>
+    </div>
+
+    <div class="timer-row">
+        <div class="label">Engine 2</div>
+        <div class="controls">
+            <button class="btn-start" id="e2-start" onclick="startTimer('e2')">START</button>
+            <button class="btn-stop" id="e2-stop" onclick="stopTimer('e2')" disabled>STOP</button>
+        </div>
+        <div class="time-display" id="e2-display">00:00:00</div>
+    </div>
+
+    <div class="timer-row" style="background: #eef6ff; border-color: #007aff;">
+        <div class="label">Flight</div>
+        <div class="controls">
+            <button class="btn-start" id="fl-start" onclick="startTimer('fl')">START</button>
+            <button class="btn-stop" id="fl-stop" onclick="stopTimer('fl')" disabled>STOP</button>
+        </div>
+        <div class="time-display" id="fl-display">00:00:00</div>
+    </div>
+
+    <div class="flight-info">
+        <div class="info-box">
+            UP TIME: <span id="up-time">--:--</span><br><br>
+            DOWN TIME: <span id="down-time">--:--</span>
+        </div>
+        <div class="info-box">
+            DECIMAL HOURS
+            <div class="decimal-hrs" id="decimal-display">0.0h</div>
+        </div>
+    </div>
+
+<script>
+    let timers = {
+        e1: { elapsed: 0, start: null, interval: null },
+        e2: { elapsed: 0, start: null, interval: null },
+        fl: { elapsed: 0, start: null, interval: null }
+    };
+
+    function formatTime(ms) {
+        let totalSecs = Math.floor(ms / 1000);
+        let hrs = Math.floor(totalSecs / 3600);
+        let mins = Math.floor((totalSecs % 3600) / 60);
+        let secs = totalSecs % 60;
+        return [hrs, mins, secs].map(v => v < 10 ? "0" + v : v).join(":");
+    }
+
+    function updateDecimal(ms) {
+        let decimal = (ms / 3600000).toFixed(1);
+        document.getElementById('decimal-display').textContent = decimal + "h";
+    }
+
+    function startTimer(key) {
+        timers[key].start = Date.now() - timers[key].elapsed;
+        
+        // Log Up Time for Flight
+        if (key === 'fl') {
+            let now = new Date();
+            document.getElementById('up-time').textContent = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+        }
+
+        timers[key].interval = setInterval(() => {
+            timers[key].elapsed = Date.now() - timers[key].start;
+            document.getElementById(key + '-display').textContent = formatTime(timers[key].elapsed);
+            if (key === 'fl') updateDecimal(timers[key].elapsed);
+        }, 1000);
+
+        document.getElementById(key + '-start').disabled = true;
+        document.getElementById(key + '-stop').disabled = false;
+    }
+
+    function stopTimer(key) {
+        clearInterval(timers[key].interval);
+        
+        // Log Down Time for Flight
+        if (key === 'fl') {
+            let now = new Date();
+            document.getElementById('down-time').textContent = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+        }
+
+        document.getElementById(key + '-start').disabled = false;
+        document.getElementById(key + '-stop').disabled = true;
+    }
+
+    // Register Service Worker for Offline
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+    }
+</script>
+</body>
+</html>

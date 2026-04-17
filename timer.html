@@ -4,15 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Phil's Timer v1.9</title>
+    <title>Phils Timer v1.10</title>
     <style>
         body { background: #fff; color: #000; font-family: sans-serif; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         h1 { font-size: 1.5rem; margin: 5px 0; border-bottom: 3px solid #000; width: 98%; max-width: 600px; text-align: center; }
         
-        /* Unified Width Container */
         .ui-element { width: 98%; max-width: 600px; box-sizing: border-box; margin-bottom: 8px; }
 
-        /* Timer Rows */
         .timer-row { display: flex; align-items: center; justify-content: space-between; padding: 8px; border: 2px solid #000; border-radius: 8px; }
         .label { font-size: 0.9rem; font-weight: bold; width: 50px; }
         .controls { display: flex; gap: 4px; }
@@ -24,98 +22,105 @@
         
         .time-display { font-family: monospace; font-size: 1.2rem; font-weight: bold; min-width: 85px; text-align: right; }
 
-        /* Summary Boxes */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .stat-box { background: #f0f0f0; padding: 10px; border: 2px solid #000; border-radius: 8px; font-weight: bold; text-align: center; }
         .ts-info { font-size: 0.75rem; color: #444; display: block; margin-bottom: 4px; }
         .total-summary { font-size: 1.3rem; font-family: monospace; display: block; border-top: 1px solid #aaa; margin-top: 5px; padding-top: 5px; }
 
-        /* Mullah Table */
         .mullah-box { padding: 8px; background: #e9f7ef; border: 2px solid #28a745; border-radius: 8px; }
         .mullah-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 0.75rem; }
         .mullah-table td { font-family: monospace; font-size: 1rem; font-weight: bold; padding-top: 4px; }
 
-        /* Bottom Buttons */
         .action-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px; }
         .btn-act { padding: 15px 0; text-transform: uppercase; color: #fff; }
         .b-reset { background: #000; }
         .b-save { background: #007bff; }
         .b-load { background: #6c757d; }
 
-        /* History Overlay */
+        /* Log Page Styles */
         #log-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 100; overflow-y: auto; padding: 15px; box-sizing: border-box; }
-        .log-table { width: 100%; border-collapse: collapse; font-size: 0.7rem; margin-top: 15px; }
+        .log-table { width: 100%; border-collapse: collapse; font-size: 0.7rem; margin: 15px 0; }
         .log-table th, .log-table td { border: 1px solid #000; padding: 5px; text-align: center; }
+        
+        .log-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+        .btn-log-back { background: #28a745; color: white; padding: 15px; }
+        .btn-log-del { background: #dc3545; color: white; padding: 15px; }
     </style>
 </head>
 <body>
 
-    <h1>Phils Flight Timer</h1>
+    <div id="main-timer-page" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+        <h1>Phils Flight Timer</h1>
 
-    <div class="ui-element timer-row">
-        <div class="label">ENG 1</div>
-        <div class="controls">
-            <button class="btn-start" id="e1-start" onclick="startT('e1')">START</button>
-            <button class="btn-stop" id="e1-stop" onclick="stopT('e1')" disabled>STOP</button>
-            <button class="btn-row-reset" onclick="resetRow('e1')">CLR</button>
+        <div class="ui-element timer-row">
+            <div class="label">ENG 1</div>
+            <div class="controls">
+                <button class="btn-start" id="e1-start" onclick="startT('e1')">START</button>
+                <button class="btn-stop" id="e1-stop" onclick="stopT('e1')" disabled>STOP</button>
+                <button class="btn-row-reset" onclick="resetRow('e1')">CLR</button>
+            </div>
+            <div class="time-display" id="e1-disp">00:00:00</div>
         </div>
-        <div class="time-display" id="e1-disp">00:00:00</div>
-    </div>
 
-    <div class="ui-element timer-row">
-        <div class="label">ENG 2</div>
-        <div class="controls">
-            <button class="btn-start" id="e2-start" onclick="startT('e2')">START</button>
-            <button class="btn-stop" id="e2-stop" onclick="stopT('e2')" disabled>STOP</button>
-            <button class="btn-row-reset" onclick="resetRow('e2')">CLR</button>
+        <div class="ui-element timer-row">
+            <div class="label">ENG 2</div>
+            <div class="controls">
+                <button class="btn-start" id="e2-start" onclick="startT('e2')">START</button>
+                <button class="btn-stop" id="e2-stop" onclick="stopT('e2')" disabled>STOP</button>
+                <button class="btn-row-reset" onclick="resetRow('e2')">CLR</button>
+            </div>
+            <div class="time-display" id="e2-disp">00:00:00</div>
         </div>
-        <div class="time-display" id="e2-disp">00:00:00</div>
-    </div>
 
-    <div class="ui-element timer-row" style="background: #e6f3ff;">
-        <div class="label">FLIGHT</div>
-        <div class="controls">
-            <button class="btn-start" id="fl-start" onclick="startT('fl')">START</button>
-            <button class="btn-stop" id="fl-stop" onclick="stopT('fl')" disabled>STOP</button>
-            <button class="btn-row-reset" onclick="resetRow('fl')">CLR</button>
+        <div class="ui-element timer-row" style="background: #e6f3ff;">
+            <div class="label">FLIGHT</div>
+            <div class="controls">
+                <button class="btn-start" id="fl-start" onclick="startT('fl')">START</button>
+                <button class="btn-stop" id="fl-stop" onclick="stopT('fl')" disabled>STOP</button>
+                <button class="btn-row-reset" onclick="resetRow('fl')">CLR</button>
+            </div>
+            <div class="time-display" id="fl-disp">00:00:00</div>
         </div>
-        <div class="time-display" id="fl-disp">00:00:00</div>
-    </div>
 
-    <div class="ui-element stats-grid">
-        <div class="stat-box">
-            <span class="ts-info">ENGINE RUN<br><span id="e-ts">--:-- to --:--</span></span>
-            <span class="total-summary" id="e-sum">00:00 / 0.0 h</span>
+        <div class="ui-element stats-grid">
+            <div class="stat-box">
+                <span class="ts-info">ENGINE RUN<br><span id="e-ts">--:-- to --:--</span></span>
+                <span class="total-summary" id="e-sum">00:00 / 0.0 h</span>
+            </div>
+            <div class="stat-box" style="background: #e6f3ff;">
+                <span class="ts-info">FLIGHT TIME<br><span id="f-ts">--:-- to --:--</span></span>
+                <span class="total-summary" id="f-sum">00:00 / 0.0 h</span>
+            </div>
         </div>
-        <div class="stat-box" style="background: #e6f3ff;">
-            <span class="ts-info">FLIGHT TIME<br><span id="f-ts">--:-- to --:--</span></span>
-            <span class="total-summary" id="f-sum">00:00 / 0.0 h</span>
+
+        <div class="ui-element mullah-box">
+            <table class="mullah-table">
+                <tr><th>Flt Pay</th><th>Tax</th><th>Wife</th><th>Phil</th></tr>
+                <tr><td id="m-flt">$0.00</td><td id="m-tax">$0.00</td><td id="m-wife">$0.00</td><td id="m-phil">$0.00</td></tr>
+            </table>
         </div>
-    </div>
 
-    <div class="ui-element mullah-box">
-        <table class="mullah-table">
-            <tr><th>Flt Pay</th><th>Tax</th><th>Wife</th><th>Phil</th></tr>
-            <tr><td id="m-flt">$0.00</td><td id="m-tax">$0.00</td><td id="m-wife">$0.00</td><td id="m-phil">$0.00</td></tr>
-        </table>
-    </div>
-
-    <div class="ui-element action-row">
-        <button class="btn-act b-reset" onclick="location.reload()">Master</button>
-        <button class="btn-act b-save" onclick="saveLog()">Save Log</button>
-        <button class="btn-act b-load" onclick="toggleLog(true)">Load Log</button>
+        <div class="ui-element action-row">
+            <button class="btn-act b-reset" onclick="location.reload()">RESET</button>
+            <button class="btn-act b-save" onclick="saveLog()">Save Log</button>
+            <button class="btn-act b-load" onclick="toggleLog(true)">Load Log</button>
+        </div>
     </div>
 
     <div id="log-page">
-        <h1>Logbook Records</h1>
-        <button class="btn-act b-reset" style="width:100%" onclick="toggleLog(false)">BACK TO TIMER</button>
+        <h1>Flight Logbook</h1>
+        
+        <div class="log-btn-row">
+            <button class="btn-log-back" onclick="toggleLog(false)">BACK</button>
+            <button class="btn-log-del" onclick="clearAll()">DELETE LOG</button>
+        </div>
+
         <table class="log-table">
             <thead>
                 <tr><th>Date</th><th>Eng Block</th><th>E-Dec</th><th>Flt Block</th><th>F-Dec</th></tr>
             </thead>
             <tbody id="log-body"></tbody>
         </table>
-        <button onclick="clearAll()" style="margin-top:40px; color:red; width:100%; border:1px solid red; background:none; padding:10px;">DELETE ALL HISTORY</button>
     </div>
 
 <script>

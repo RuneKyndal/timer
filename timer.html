@@ -5,48 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>Bell 214 Timer</title>
+    <title>Phil's flight timer V1.0</title>
     <link rel="manifest" href="timer.json">
     <style>
         body { 
             background: #fff; color: #000; font-family: sans-serif; 
-            margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center;
+            margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center;
         }
-        h1 { font-size: 1.8rem; margin: 10px 0 20px 0; border-bottom: 3px solid #000; width: 100%; text-align: center; }
+        h1 { font-size: 1.6rem; margin: 10px 0; border-bottom: 3px solid #000; width: 100%; text-align: center; }
         
         .timer-row {
-            width: 95%; max-width: 500px;
+            width: 98%; max-width: 600px;
             display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 15px; padding: 12px; border: 2px solid #000; border-radius: 8px;
+            margin-bottom: 10px; padding: 10px; border: 2px solid #000; border-radius: 8px;
         }
 
-        .label { font-size: 1.2rem; font-weight: bold; width: 90px; }
-        .controls { display: flex; gap: 8px; }
+        .label { font-size: 1rem; font-weight: bold; width: 60px; }
+        .controls { display: flex; gap: 5px; }
         
         button {
-            padding: 12px 20px; font-size: 1rem; font-weight: bold;
-            border-radius: 6px; border: 2px solid #000; cursor: pointer; color: #fff;
+            padding: 10px 12px; font-size: 0.9rem; font-weight: bold;
+            border-radius: 4px; border: 2px solid #000; cursor: pointer;
         }
-        .btn-start { background: #00ff00; color: #000; } /* Bright Green */
-        .btn-stop { background: #ff0000; color: #fff; }  /* Bright Red */
+        .btn-start { background: #00ff00; color: #000; }
+        .btn-stop { background: #ff0000; color: #fff; }
+        .btn-clear { background: #fff; color: #000; }
         button:disabled { background: #eee; color: #aaa; border-color: #ccc; }
 
         .time-display {
-            font-family: monospace; font-size: 1.6rem; font-weight: bold;
-            min-width: 120px; text-align: right;
+            font-family: monospace; font-size: 1.4rem; font-weight: bold;
+            min-width: 100px; text-align: right;
         }
 
-        .flight-stats {
-            width: 95%; max-width: 500px; margin-top: 10px;
-            display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px;
+        .stats-grid {
+            width: 98%; max-width: 600px; margin-top: 10px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
         }
         .stat-box { 
-            background: #f0f0f0; padding: 15px; border: 2px solid #000; border-radius: 8px;
-            font-weight: bold; font-size: 1.1rem;
+            background: #f0f0f0; padding: 10px; border: 2px solid #000; border-radius: 8px;
+            font-weight: bold; text-align: center;
         }
-        .decimal-large { font-size: 3rem; color: #000; text-align: center; display: block; }
-        .reset-wrap { margin-top: 30px; width: 95%; max-width: 500px; }
-        .btn-reset { background: #000; color: #fff; width: 100%; padding: 15px; }
+        .val-large { font-size: 2.2rem; color: #000; display: block; font-family: monospace; }
+        .val-sub { font-size: 1rem; color: #666; }
     </style>
 </head>
 <body>
@@ -58,6 +58,7 @@
         <div class="controls">
             <button class="btn-start" id="e1-start" onclick="startTimer('e1')">START</button>
             <button class="btn-stop" id="e1-stop" onclick="stopTimer('e1')" disabled>STOP</button>
+            <button class="btn-clear" onclick="resetRow('e1')">RST</button>
         </div>
         <div class="time-display" id="e1-display">00:00:00</div>
     </div>
@@ -67,6 +68,7 @@
         <div class="controls">
             <button class="btn-start" id="e2-start" onclick="startTimer('e2')">START</button>
             <button class="btn-stop" id="e2-stop" onclick="stopTimer('e2')" disabled>STOP</button>
+            <button class="btn-clear" onclick="resetRow('e2')">RST</button>
         </div>
         <div class="time-display" id="e2-display">00:00:00</div>
     </div>
@@ -76,53 +78,76 @@
         <div class="controls">
             <button class="btn-start" id="fl-start" onclick="startTimer('fl')">START</button>
             <button class="btn-stop" id="fl-stop" onclick="stopTimer('fl')" disabled>STOP</button>
+            <button class="btn-clear" onclick="resetRow('fl')">RST</button>
         </div>
         <div class="time-display" id="fl-display">00:00:00</div>
     </div>
 
-    <div class="flight-stats">
+    <div class="stats-grid">
         <div class="stat-box">
-            UP: <span id="up-time">--:--</span><br>
-            DOWN: <span id="down-time">--:--</span>
+            FLIGHT UP/DOWN
+            <div style="font-size: 1.2rem; margin: 10px 0;">
+                UP: <span id="up-time">--:--</span><br>
+                DN: <span id="down-time">--:--</span>
+            </div>
         </div>
         <div class="stat-box">
-            HOURS (DECIMAL)
-            <span class="decimal-large" id="decimal-display">0.0</span>
+            ENGINE RUN TIME
+            <span class="val-large" id="eng-run-hm">00:00</span>
+            <span class="val-sub" id="eng-run-dec">0.0h</span>
         </div>
     </div>
 
-    <div class="reset-wrap">
-        <button class="btn-reset" onclick="resetAll()">RESET ALL TIMERS</button>
+    <div class="stats-grid">
+        <div class="stat-box" style="grid-column: span 2; background: #fff;">
+            FLIGHT HOURS (DECIMAL)
+            <span class="val-large" id="decimal-display">0.0h</span>
+        </div>
     </div>
 
 <script>
     let timers = {
-        e1: { elapsed: 0, start: null, interval: null },
-        e2: { elapsed: 0, start: null, interval: null },
-        fl: { elapsed: 0, start: null, interval: null }
+        e1: { elapsed: 0, start: null, interval: null, running: false },
+        e2: { elapsed: 0, start: null, interval: null, running: false },
+        fl: { elapsed: 0, start: null, interval: null, running: false },
+        globalEng: { elapsed: 0, start: null, interval: null }
     };
 
-    function formatTime(ms) {
-        let totalSecs = Math.floor(ms / 1000);
-        let hrs = Math.floor(totalSecs / 3600);
-        let mins = Math.floor((totalSecs % 3600) / 60);
-        let secs = totalSecs % 60;
-        return [hrs, mins, secs].map(v => v < 10 ? "0" + v : v).join(":");
+    function formatHMS(ms) {
+        let s = Math.floor(ms / 1000);
+        return [Math.floor(s/3600), Math.floor((s%3600)/60), s%60].map(v => v.toString().padStart(2,'0')).join(':');
+    }
+
+    function formatHM(ms) {
+        let s = Math.floor(ms / 1000);
+        return Math.floor(s/3600).toString().padStart(2,'0') + ":" + Math.floor((s%3600)/60).toString().padStart(2,'0');
     }
 
     function startTimer(key) {
+        timers[key].running = true;
         timers[key].start = Date.now() - timers[key].elapsed;
         
+        // Flight Up Time
         if (key === 'fl') {
             let now = new Date();
             document.getElementById('up-time').textContent = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
         }
 
+        // Global Engine Logic: Start if this is the FIRST engine to go on
+        if ((key === 'e1' || key === 'e2') && !timers.globalEng.interval) {
+            timers.globalEng.start = Date.now() - timers.globalEng.elapsed;
+            timers.globalEng.interval = setInterval(() => {
+                timers.globalEng.elapsed = Date.now() - timers.globalEng.start;
+                document.getElementById('eng-run-hm').textContent = formatHM(timers.globalEng.elapsed);
+                document.getElementById('eng-run-dec').textContent = (timers.globalEng.elapsed / 3600000).toFixed(1) + "h";
+            }, 1000);
+        }
+
         timers[key].interval = setInterval(() => {
             timers[key].elapsed = Date.now() - timers[key].start;
-            document.getElementById(key + '-display').textContent = formatTime(timers[key].elapsed);
+            document.getElementById(key + '-display').textContent = formatHMS(timers[key].elapsed);
             if (key === 'fl') {
-                document.getElementById('decimal-display').textContent = (timers[key].elapsed / 3600000).toFixed(1);
+                document.getElementById('decimal-display').textContent = (timers[key].elapsed / 3600000).toFixed(1) + "h";
             }
         }, 1000);
 
@@ -131,33 +156,44 @@
     }
 
     function stopTimer(key) {
+        timers[key].running = false;
         clearInterval(timers[key].interval);
+        
         if (key === 'fl') {
             let now = new Date();
             document.getElementById('down-time').textContent = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
         }
+
+        // Global Engine Logic: Stop ONLY if BOTH engines are now off
+        if ((key === 'e1' || key === 'e2') && !timers.e1.running && !timers.e2.running) {
+            clearInterval(timers.globalEng.interval);
+            timers.globalEng.interval = null;
+        }
+
         document.getElementById(key + '-start').disabled = false;
         document.getElementById(key + '-stop').disabled = true;
     }
 
-    function resetAll() {
-        if(!confirm("Clear all times?")) return;
-        Object.keys(timers).forEach(key => {
-            clearInterval(timers[key].interval);
-            timers[key] = { elapsed: 0, start: null, interval: null };
-            document.getElementById(key + '-display').textContent = "00:00:00";
-            document.getElementById(key + '-start').disabled = false;
-            document.getElementById(key + '-stop').disabled = true;
-        });
-        document.getElementById('up-time').textContent = "--:--";
-        document.getElementById('down-time').textContent = "--:--";
-        document.getElementById('decimal-display').textContent = "0.0";
+    function resetRow(key) {
+        if(!confirm("Reset " + key + "?")) return;
+        stopTimer(key);
+        timers[key].elapsed = 0;
+        document.getElementById(key + '-display').textContent = "00:00:00";
+        if (key === 'fl') {
+            document.getElementById('up-time').textContent = "--:--";
+            document.getElementById('down-time').textContent = "--:--";
+            document.getElementById('decimal-display').textContent = "0.0h";
+        }
+        // Reset Global Engine Run if both engines reset
+        if ((key === 'e1' || key === 'e2') && timers.e1.elapsed === 0 && timers.e2.elapsed === 0) {
+            timers.globalEng.elapsed = 0;
+            document.getElementById('eng-run-hm').textContent = "00:00";
+            document.getElementById('eng-run-dec').textContent = "0.0h";
+        }
     }
 
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw-timer.js');
-        });
+        window.addEventListener('load', () => { navigator.serviceWorker.register('sw-timer.js'); });
     }
 </script>
 </body>

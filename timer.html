@@ -45,14 +45,14 @@
             background: #f0f0f0; padding: 12px; border: 2px solid #000; border-radius: 8px;
             font-weight: bold; text-align: center;
         }
-        .total-val { font-size: 1.8rem; font-family: monospace; display: block; margin-top: 5px; border-top: 1px solid #aaa; padding-top: 5px; }
+        .total-val { font-size: 1.6rem; font-family: monospace; display: block; margin-top: 5px; border-top: 1px solid #aaa; padding-top: 5px; }
         .timestamp { font-size: 1.2rem; color: #000; }
         .ts-label { font-size: 0.8rem; color: #555; text-transform: uppercase; margin-bottom: 2px; display: block; }
     </style>
 </head>
 <body>
 
-    <h1>Bell 214 Flight Timer</h1>
+    <h1>Phils Flight Timer</h1>
 
     <div class="timer-row">
         <div class="label">ENG 1</div>
@@ -96,7 +96,7 @@
                 </div>
             </div>
             <div class="total-val">
-                <span id="eng-run-hm">00:00</span>
+                <span id="eng-run-hms">00:00:00</span>
                 <div style="font-size: 1.2rem;" id="eng-run-dec">0.0</div>
             </div>
         </div>
@@ -112,7 +112,7 @@
                 </div>
             </div>
             <div class="total-val">
-                <span id="fl-run-hm">00:00</span>
+                <span id="fl-run-hms">00:00:00</span>
                 <div style="font-size: 1.2rem;" id="fl-run-dec">0.0</div>
             </div>
         </div>
@@ -136,11 +136,6 @@
         return [Math.floor(s/3600), Math.floor((s%3600)/60), s%60].map(v => v.toString().padStart(2,'0')).join(':');
     }
 
-    function formatHM(ms) {
-        let s = Math.floor(ms / 1000);
-        return Math.floor(s/3600).toString().padStart(2,'0') + ":" + Math.floor((s%3600)/60).toString().padStart(2,'0');
-    }
-
     function startTimer(key) {
         timers[key].running = true;
         timers[key].start = Date.now() - timers[key].elapsed;
@@ -157,7 +152,7 @@
             if (!timers.globalEng.interval) {
                 timers.globalEng.interval = setInterval(() => {
                     let run = Date.now() - timers.globalEng.startTime;
-                    document.getElementById('eng-run-hm').textContent = formatHM(run);
+                    document.getElementById('eng-run-hms').textContent = formatHMS(run);
                     document.getElementById('eng-run-dec').textContent = (run / 3600000).toFixed(1);
                 }, 1000);
             }
@@ -167,7 +162,7 @@
             timers[key].elapsed = Date.now() - timers[key].start;
             document.getElementById(key + '-display').textContent = formatHMS(timers[key].elapsed);
             if (key === 'fl') {
-                document.getElementById('fl-run-hm').textContent = formatHM(timers[key].elapsed);
+                document.getElementById('fl-run-hms').textContent = formatHMS(timers[key].elapsed);
                 document.getElementById('fl-run-dec').textContent = (timers[key].elapsed / 3600000).toFixed(1);
             }
         }, 1000);
@@ -190,7 +185,7 @@
             timers.globalEng.stopTime = Date.now();
             document.getElementById('eng-last-stop').textContent = getTimeOfDay();
             let total = timers.globalEng.stopTime - timers.globalEng.startTime;
-            document.getElementById('eng-run-hm').textContent = formatHM(total);
+            document.getElementById('eng-run-hms').textContent = formatHMS(total);
             document.getElementById('eng-run-dec').textContent = (total / 3600000).toFixed(1);
         }
 
@@ -199,21 +194,20 @@
     }
 
     function resetRow(key) {
-        if(!confirm("Reset " + key + "?")) return;
         stopTimer(key);
         timers[key].elapsed = 0;
         document.getElementById(key + '-display').textContent = "00:00:00";
         if (key === 'fl') {
             document.getElementById('up-time').textContent = "--:--";
             document.getElementById('down-time').textContent = "--:--";
-            document.getElementById('fl-run-hm').textContent = "00:00";
+            document.getElementById('fl-run-hms').textContent = "00:00:00";
             document.getElementById('fl-run-dec').textContent = "0.0";
         }
         if ((key === 'e1' || key === 'e2') && !timers.e1.running && !timers.e2.running) {
             timers.globalEng.startTime = null;
             document.getElementById('eng-first-start').textContent = "--:--";
             document.getElementById('eng-last-stop').textContent = "--:--";
-            document.getElementById('eng-run-hm').textContent = "00:00";
+            document.getElementById('eng-run-hms').textContent = "00:00:00";
             document.getElementById('eng-run-dec').textContent = "0.0";
         }
     }

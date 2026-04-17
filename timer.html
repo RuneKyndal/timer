@@ -30,9 +30,19 @@
         .btn-start { background: #00ff00; color: #000; }
         .btn-stop { background: #ff0000; color: #fff; }
         .btn-clear { background: #fff; color: #000; }
+        
         .btn-reset-all { 
             background: #000; color: #fff; width: 98%; max-width: 600px; 
-            margin-top: 20px; padding: 18px; font-size: 1.2rem; 
+            margin-top: 20px; padding: 15px; font-size: 1.1rem; 
+        }
+
+        .btn-mullah {
+            background: #28a745; color: #fff; width: 98%; max-width: 600px;
+            margin-top: 10px; padding: 15px; font-size: 1.1rem;
+        }
+
+        .mullah-display {
+            font-size: 2rem; font-weight: bold; color: #28a745; margin-top: 10px; font-family: monospace;
         }
 
         .time-display {
@@ -122,6 +132,8 @@
     </div>
 
     <button class="btn-reset-all" onclick="masterReset()">RESET ALL DATA</button>
+    <button class="btn-mullah" onclick="calculateMullah()">Phils Mullah</button>
+    <div class="mullah-display" id="mullah-out">$0.00</div>
 
 <script>
     let timers = {
@@ -219,6 +231,14 @@
 
     function masterReset() {
         ['e1', 'e2', 'fl'].forEach(key => resetRow(key));
+        document.getElementById('mullah-out').textContent = "$0.00";
+    }
+
+    function calculateMullah() {
+        // Now using eng-run-dec instead of fl-run-dec
+        let decimalHours = parseFloat(document.getElementById('eng-run-dec').textContent);
+        let total = decimalHours * 265;
+        document.getElementById('mullah-out').textContent = "$" + total.toFixed(2);
     }
 
     if ('serviceWorker' in navigator) {

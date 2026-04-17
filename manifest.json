@@ -1,15 +1,23 @@
 {
   "name": "Helicopter Flight Timer",
   "short_name": "HeliTimer",
-  "start_url": "index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAAAAAGG8m7AAAAB3RJTUUH5AgKCQ8AAAAAAElFTkSuQmCC",
+      "src": "https://cdn-icons-png.flaticon.com/192/3067/3067185.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3067/3067185.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }

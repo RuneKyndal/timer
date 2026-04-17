@@ -36,7 +36,6 @@
             margin-top: 20px; padding: 15px; font-size: 1.1rem; 
         }
 
-        /* Mullah Table Styling */
         .mullah-box {
             width: 98%; max-width: 600px; margin-top: 15px; padding: 10px;
             background: #e9f7ef; border: 2px solid #28a745; border-radius: 8px;
@@ -148,10 +147,10 @@
             </thead>
             <tbody>
                 <tr>
-                    <td id="m-flt">$0.000</td>
-                    <td id="m-tax">$0.000</td>
-                    <td id="m-wife">$0.000</td>
-                    <td id="m-phil">$0.000</td>
+                    <td id="m-flt">$0.00</td>
+                    <td id="m-tax">$0.00</td>
+                    <td id="m-wife">$0.00</td>
+                    <td id="m-phil">$0.00</td>
                 </tr>
             </tbody>
         </table>
@@ -184,10 +183,10 @@
         let wife = net * 0.75;
         let phil = net - wife;
 
-        document.getElementById('m-flt').textContent = "$" + fltPay.toFixed(3);
-        document.getElementById('m-tax').textContent = "$" + tax.toFixed(3);
-        document.getElementById('m-wife').textContent = "$" + wife.toFixed(3);
-        document.getElementById('m-phil').textContent = "$" + phil.toFixed(3);
+        document.getElementById('m-flt').textContent = "$" + fltPay.toFixed(2);
+        document.getElementById('m-tax').textContent = "$" + tax.toFixed(2);
+        document.getElementById('m-wife').textContent = "$" + wife.toFixed(2);
+        document.getElementById('m-phil').textContent = "$" + phil.toFixed(2);
     }
 
     function startTimer(key) {
@@ -261,10 +260,10 @@
             document.getElementById('eng-last-stop').textContent = "--:--";
             document.getElementById('eng-run-hms').textContent = "00:00:00";
             document.getElementById('eng-run-dec').textContent = "0.0";
-            document.getElementById('m-flt').textContent = "$0.000";
-            document.getElementById('m-tax').textContent = "$0.000";
-            document.getElementById('m-wife').textContent = "$0.000";
-            document.getElementById('m-phil').textContent = "$0.000";
+            document.getElementById('m-flt').textContent = "$0.00";
+            document.getElementById('m-tax').textContent = "$0.00";
+            document.getElementById('m-wife').textContent = "$0.00";
+            document.getElementById('m-phil').textContent = "$0.00";
         }
     }
 

@@ -36,15 +36,18 @@
             margin-top: 20px; padding: 15px; font-size: 1.1rem; 
         }
 
+        /* Mullah Table Styling */
         .mullah-box {
-            width: 98%; max-width: 600px; margin-top: 15px; padding: 15px;
+            width: 98%; max-width: 600px; margin-top: 15px; padding: 10px;
             background: #e9f7ef; border: 2px solid #28a745; border-radius: 8px;
-            text-align: center;
         }
-
-        .mullah-label { font-size: 0.9rem; font-weight: bold; color: #28a745; text-transform: uppercase; }
-        .mullah-display {
-            font-size: 2.2rem; font-weight: bold; color: #1e7e34; margin-top: 5px; font-family: monospace;
+        .mullah-table {
+            width: 100%; border-collapse: collapse; text-align: center;
+        }
+        .mullah-table th { font-size: 0.75rem; color: #28a745; text-transform: uppercase; padding-bottom: 5px; }
+        .mullah-table td { 
+            font-family: monospace; font-size: 1.1rem; font-weight: bold; color: #1e7e34;
+            border-top: 1px solid #c3e6cb; padding-top: 8px;
         }
 
         .time-display {
@@ -134,8 +137,24 @@
     </div>
 
     <div class="mullah-box">
-        <div class="mullah-label">Phils Mullah ($265/hr)</div>
-        <div class="mullah-display" id="mullah-out">$0.0000</div>
+        <table class="mullah-table">
+            <thead>
+                <tr>
+                    <th>Flt Pay</th>
+                    <th>Taxes 50%</th>
+                    <th>Wife (75%)</th>
+                    <th>Phil</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td id="m-flt">$0.000</td>
+                    <td id="m-tax">$0.000</td>
+                    <td id="m-wife">$0.000</td>
+                    <td id="m-phil">$0.000</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
     <button class="btn-reset-all" onclick="masterReset()">RESET ALL DATA</button>
@@ -159,18 +178,23 @@
     }
 
     function updateMullah(ms) {
-        let total = (ms / 3600000) * 265;
-        // Using 4 decimals to ensure every second tick is visible
-        document.getElementById('mullah-out').textContent = "$" + total.toFixed(4);
+        let fltPay = (ms / 3600000) * 265;
+        let tax = fltPay * 0.50;
+        let net = fltPay - tax;
+        let wife = net * 0.75;
+        let phil = net - wife;
+
+        document.getElementById('m-flt').textContent = "$" + fltPay.toFixed(3);
+        document.getElementById('m-tax').textContent = "$" + tax.toFixed(3);
+        document.getElementById('m-wife').textContent = "$" + wife.toFixed(3);
+        document.getElementById('m-phil').textContent = "$" + phil.toFixed(3);
     }
 
     function startTimer(key) {
         timers[key].running = true;
         timers[key].start = Date.now() - timers[key].elapsed;
         
-        if (key === 'fl') {
-            document.getElementById('up-time').textContent = getTimeOfDay();
-        }
+        if (key === 'fl') document.getElementById('up-time').textContent = getTimeOfDay();
 
         if (key === 'e1' || key === 'e2') {
             if (!timers.globalEng.startTime) {
@@ -204,9 +228,7 @@
         timers[key].running = false;
         clearInterval(timers[key].interval);
         
-        if (key === 'fl') {
-            document.getElementById('down-time').textContent = getTimeOfDay();
-        }
+        if (key === 'fl') document.getElementById('down-time').textContent = getTimeOfDay();
 
         if ((key === 'e1' || key === 'e2') && !timers.e1.running && !timers.e2.running) {
             clearInterval(timers.globalEng.interval);
@@ -239,7 +261,10 @@
             document.getElementById('eng-last-stop').textContent = "--:--";
             document.getElementById('eng-run-hms').textContent = "00:00:00";
             document.getElementById('eng-run-dec').textContent = "0.0";
-            document.getElementById('mullah-out').textContent = "$0.0000";
+            document.getElementById('m-flt').textContent = "$0.000";
+            document.getElementById('m-tax').textContent = "$0.000";
+            document.getElementById('m-wife').textContent = "$0.000";
+            document.getElementById('m-phil').textContent = "$0.000";
         }
     }
 

@@ -3,228 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="mobile-web-app-capable" content="yes">
-
-    <title>Helicopter Flight Timer v1.20</title>
+    <title>HeliTimer v1.22</title>
     <style>
-        body { background: #fff; color: #000; font-family: sans-serif; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; -webkit-tap-highlight-color: transparent; }
-        h1 { font-size: 1.3rem; margin: 5px 0 10px 0; border-bottom: 2px solid #000; width: 100%; max-width: 500px; text-align: center; padding-bottom: 5px; }
+        body { background: #fff; color: #000; font-family: sans-serif; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        .ui-element { width: 100%; max-width: 400px; margin-bottom: 10px; }
+        .timer-row { display: flex; align-items: center; justify-content: space-between; padding: 8px; border: 2px solid #000; border-radius: 8px; }
+        .label { font-size: 0.8rem; font-weight: bold; width: 45px; }
+        .controls { display: flex; gap: 4px; }
+        button { font-weight: bold; border-radius: 5px; border: 2px solid #000; cursor: pointer; text-transform: uppercase; }
         
-        .ui-element { width: 100%; max-width: 500px; box-sizing: border-box; margin-bottom: 10px; }
-
-        .timer-row { display: flex; align-items: center; justify-content: space-between; padding: 10px; border: 2px solid #000; border-radius: 8px; }
-        .label { font-size: 0.9rem; font-weight: bold; width: 50px; }
-        
-        .controls { display: flex; gap: 5px; }
-        
-        button { font-weight: bold; border-radius: 6px; border: 2px solid #000; cursor: pointer; text-transform: uppercase; touch-action: manipulation; }
-        
-        /* Smaller, phone-friendly buttons */
-        .btn-timer { padding: 10px 8px; min-width: 55px; font-size: 0.85rem; }
-        
-        .btn-start { background: #00ff00; color: #000; }
+        /* Smaller buttons for phone scaling */
+        .btn-timer { padding: 8px 4px; min-width: 50px; font-size: 0.75rem; }
+        .btn-start { background: #00ff00; }
         .btn-stop { background: #ff0000; color: #fff; }
-        .btn-stop:disabled { background: #660000; color: #aaa; opacity: 0.6; }
-        .btn-row-reset { background: #ddd; min-width: 45px; }
+        .btn-stop:disabled { background: #600; opacity: 0.5; }
+        .btn-row-reset { background: #ccc; min-width: 40px; }
         
-        .time-display { font-family: monospace; font-size: 1.2rem; font-weight: bold; min-width: 85px; text-align: right; }
-
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .stat-box { background: #f0f0f0; padding: 10px; border: 2px solid #000; border-radius: 8px; font-weight: bold; text-align: center; }
-        .ts-info { font-size: 0.7rem; color: #444; display: block; margin-bottom: 4px; min-height: 2.5em; }
-        .total-hms { font-size: 1.2rem; font-family: monospace; display: block; border-top: 1px solid #aaa; margin-top: 4px; padding-top: 4px; }
-        .total-dec { font-size: 1rem; font-family: monospace; color: #222; display: block; margin-top: 2px; }
-
-        .action-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px; }
-        .btn-act { padding: 15px 0; color: #fff; font-size: 0.85rem; }
-        .b-reset { background: #000; }
-        .b-save { background: #007bff; }
-        .b-load { background: #6c757d; }
-
-        /* Logbook Overlay */
-        #log-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 100; overflow-y: auto; padding: 10px; box-sizing: border-box; }
-        .log-table { width: 100%; border-collapse: collapse; font-size: 0.7rem; margin: 15px 0; }
-        .log-table th, .log-table td { border: 1px solid #000; padding: 4px; text-align: center; }
+        .time-display { font-family: monospace; font-size: 1.1rem; font-weight: bold; min-width: 80px; text-align: right; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .stat-box { background: #f0f0f0; padding: 8px; border: 2px solid #000; border-radius: 8px; text-align: center; }
+        .ts-info { font-size: 0.65rem; height: 2.4em; display: block; }
+        .total-hms { font-size: 1.1rem; font-family: monospace; display: block; border-top: 1px solid #000; margin-top: 4px; }
         
-        .log-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; max-width: 500px; margin: 0 auto; }
-        .btn-log-back { background: #28a745; color: white; padding: 15px; font-size: 1rem; }
-        .btn-log-del { background: #dc3545; color: white; padding: 15px; font-size: 1rem; }
-        .log-header { text-align: center; font-size: 1.3rem; margin: 5px 0 15px 0; border-bottom: 2px solid #000; padding-bottom: 5px; }
+        .action-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 10px; }
+        .btn-act { padding: 12px 0; color: #fff; font-size: 0.8rem; }
+        
+        #log-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 999; padding: 10px; box-sizing: border-box; overflow-y: auto; }
+        .log-table { width: 100%; border-collapse: collapse; font-size: 0.65rem; }
+        .log-table th, .log-table td { border: 1px solid #000; padding: 3px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div id="main-timer-page" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-        <h1>Helicopter Flight Timer</h1>
-
-        <div class="ui-element timer-row">
-            <div class="label">ENG 1</div>
-            <div class="controls">
-                <button class="btn-timer btn-start" id="e1-start" onclick="startT('e1')">START</button>
-                <button class="btn-timer btn-stop" id="e1-stop" onclick="stopT('e1')" disabled>STOP</button>
-                <button class="btn-timer btn-row-reset" onclick="resetRow('e1')">RST</button>
-            </div>
-            <div class="time-display" id="e1-disp">00:00:00</div>
+<div id="main-timer-page" class="ui-element">
+    <h2 style="text-align:center; margin: 0 0 10px 0;">Flight Timer v1.22</h2>
+    
+    <div class="timer-row ui-element">
+        <div class="label">ENG 1</div>
+        <div class="controls">
+            <button class="btn-timer btn-start" id="e1-start" onclick="startT('e1')">START</button>
+            <button class="btn-timer btn-stop" id="e1-stop" onclick="stopT('e1')" disabled>STOP</button>
+            <button class="btn-timer btn-row-reset" onclick="resetRow('e1')">RST</button>
         </div>
+        <div class="time-display" id="e1-disp">00:00:00</div>
+    </div>
 
-        <div class="ui-element timer-row">
-            <div class="label">ENG 2</div>
-            <div class="controls">
-                <button class="btn-timer btn-start" id="e2-start" onclick="startT('e2')">START</button>
-                <button class="btn-timer btn-stop" id="e2-stop" onclick="stopT('e2')" disabled>STOP</button>
-                <button class="btn-timer btn-row-reset" onclick="resetRow('e2')">RST</button>
-            </div>
-            <div class="time-display" id="e2-disp">00:00:00</div>
+    <div class="timer-row ui-element">
+        <div class="label">ENG 2</div>
+        <div class="controls">
+            <button class="btn-timer btn-start" id="e2-start" onclick="startT('e2')">START</button>
+            <button class="btn-timer btn-stop" id="e2-stop" onclick="stopT('e2')" disabled>STOP</button>
+            <button class="btn-timer btn-row-reset" onclick="resetRow('e2')">RST</button>
         </div>
+        <div class="time-display" id="e2-disp">00:00:00</div>
+    </div>
 
-        <div class="ui-element timer-row" style="background: #e6f3ff;">
-            <div class="label">FLIGHT</div>
-            <div class="controls">
-                <button class="btn-timer btn-start" id="fl-start" onclick="startT('fl')">START</button>
-                <button class="btn-timer btn-stop" id="fl-stop" onclick="stopT('fl')" disabled>STOP</button>
-                <button class="btn-timer btn-row-reset" onclick="resetRow('fl')">RST</button>
-            </div>
-            <div class="time-display" id="fl-disp">00:00:00</div>
+    <div class="timer-row ui-element" style="background:#eef;">
+        <div class="label">FLIGHT</div>
+        <div class="controls">
+            <button class="btn-timer btn-start" id="fl-start" onclick="startT('fl')">START</button>
+            <button class="btn-timer btn-stop" id="fl-stop" onclick="stopT('fl')" disabled>STOP</button>
+            <button class="btn-timer btn-row-reset" onclick="resetRow('fl')">RST</button>
         </div>
+        <div class="time-display" id="fl-disp">00:00:00</div>
+    </div>
 
-        <div class="ui-element stats-grid">
-            <div class="stat-box">
-                <span class="ts-info">ENGINE RUN<br><span id="e-ts">--:--:-- to --:--:--</span></span>
-                <span class="total-hms" id="e-hms">00:00:00</span>
-                <span class="total-dec" id="e-dec">0.0000 h</span>
-            </div>
-            <div class="stat-box" style="background: #e6f3ff;">
-                <span class="ts-info">FLIGHT TIME<br><span id="f-ts">--:--:-- to --:--:--</span></span>
-                <span class="total-hms" id="f-hms">00:00:00</span>
-                <span class="total-dec" id="f-dec">0.0000 h</span>
-            </div>
+    <div class="stats-grid ui-element">
+        <div class="stat-box">
+            <span class="ts-info">ENG RUN<br><span id="e-ts">--:-- to --:--</span></span>
+            <span class="total-hms" id="e-hms">00:00:00</span>
         </div>
-
-        <div class="ui-element action-row">
-            <button class="btn-act b-reset" onclick="location.reload()">RESET</button>
-            <button class="btn-act b-save" onclick="saveLog()">Save Log</button>
-            <button class="btn-act b-load" onclick="toggleLog(true)">Load Log</button>
+        <div class="stat-box" style="background:#eef;">
+            <span class="ts-info">FLIGHT<br><span id="f-ts">--:-- to --:--</span></span>
+            <span class="total-hms" id="f-hms">00:00:00</span>
         </div>
     </div>
 
-    <div id="log-page">
-        <div class="log-header">Flight Logbook</div>
-        <div class="log-btn-row">
-            <button class="btn-log-back" onclick="toggleLog(false)">BACK</button>
-            <button class="btn-log-del" onclick="clearAll()">DELETE LOG</button>
-        </div>
-        <table class="log-table">
-            <thead>
-                <tr><th>Date</th><th>Eng Block</th><th>Eng</th><th>Flt Block</th><th>FLT</th></tr>
-            </thead>
-            <tbody id="log-body"></tbody>
-        </table>
+    <div class="action-row ui-element">
+        <button class="btn-act" style="background:#000;" onclick="location.reload()">RESET</button>
+        <button class="btn-act" style="background:#007bff;" onclick="saveLog()">SAVE</button>
+        <button class="btn-act" style="background:#666;" onclick="showLog()">LOGS</button>
     </div>
+</div>
+
+<div id="log-page">
+    <button onclick="hideLog()" style="background:#28a745; color:#fff; width:100%; padding:15px; font-weight:bold; margin-bottom:10px;">BACK TO TIMER</button>
+    <table class="log-table">
+        <thead><tr><th>Date</th><th>Eng Block</th><th>H</th><th>Flt Block</th><th>H</th></tr></thead>
+        <tbody id="log-body"></tbody>
+    </table>
+    <button onclick="clearLogs()" style="background:#dc3545; color:#fff; width:100%; padding:10px; margin-top:20px;">DELETE ALL LOGS</button>
+</div>
 
 <script>
-    let t = { e1:{e:0,s:null,i:null,r:false}, e2:{e:0,s:null,i:null,r:false}, fl:{e:0,s:null,i:null,r:false}, gE:{start:null,stop:null} };
-    const STORE_KEY = 'heliLogV20';
+    let timers = { 
+        e1: { elapsed: 0, start: null, interval: null, running: false },
+        e2: { elapsed: 0, start: null, interval: null, running: false },
+        fl: { elapsed: 0, start: null, interval: null, running: false, tsS: null, tsE: null },
+        engGlobal: { start: null, end: null }
+    };
 
-    function getCleanTime(dateObj) {
-        let d = dateObj ? new Date(dateObj) : new Date();
-        return [d.getHours(), d.getMinutes(), d.getSeconds()].map(v => v.toString().padStart(2, '0')).join(':');
+    function getTimeStr(d) {
+        const date = d ? new Date(d) : new Date();
+        return date.toTimeString().split(' ')[0].substring(0, 5);
     }
 
-    function fmtHMS(ms) {
+    function format(ms) {
         let s = Math.floor(ms / 1000);
-        return [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s % 60].map(v => v.toString().padStart(2, '0')).join(':');
+        let h = Math.floor(s / 3600);
+        let m = Math.floor((s % 3600) / 60);
+        let sec = s % 60;
+        return [h, m, sec].map(v => v.toString().padStart(2, '0')).join(':');
     }
 
-    function updateUI() {
-        let eMs = (t.gE.stop || (t.gE.start ? Date.now() : t.gE.start)) - t.gE.start || 0;
-        document.getElementById('e-hms').textContent = fmtHMS(eMs);
-        document.getElementById('e-dec').textContent = (eMs / 3600000).toFixed(4) + " h";
-        document.getElementById('e-ts').textContent = (t.gE.start ? getCleanTime(t.gE.start) : "--:--:--") + " to " + (t.gE.stop ? getCleanTime(t.gE.stop) : "--:--:--");
+    function updateStats() {
+        let engMs = (timers.engGlobal.end || (timers.engGlobal.start ? Date.now() : timers.engGlobal.start)) - timers.engGlobal.start || 0;
+        document.getElementById('e-hms').innerText = format(engMs);
+        document.getElementById('e-ts').innerText = (timers.engGlobal.start ? getTimeStr(timers.engGlobal.start) : "--:--") + " to " + (timers.engGlobal.end ? getTimeStr(timers.engGlobal.end) : "--:--");
         
-        let fMs = t.fl.e;
-        document.getElementById('f-hms').textContent = fmtHMS(fMs);
-        document.getElementById('f-dec').textContent = (fMs / 3600000).toFixed(4) + " h";
-        document.getElementById('f-ts').textContent = (t.fl.startTS || "--:--:--") + " to " + (t.fl.stopTS || "--:--:--");
+        document.getElementById('f-hms').innerText = format(timers.fl.elapsed);
+        document.getElementById('f-ts').innerText = (timers.fl.tsS || "--:--") + " to " + (timers.fl.tsE || "--:--");
     }
 
-    function startT(k) {
-        t[k].r = true; t[k].s = Date.now() - t[k].e;
-        if(k === 'fl' && !t.fl.startTS) t.fl.startTS = getCleanTime();
-        if((k === 'e1' || k === 'e2') && !t.gE.start) { t.gE.start = Date.now(); t.gE.stop = null; }
+    function startT(id) {
+        timers[id].running = true;
+        timers[id].start = Date.now() - timers[id].elapsed;
+        if (id === 'fl' && !timers.fl.tsS) timers.fl.tsS = getTimeStr();
+        if ((id === 'e1' || id === 'e2') && !timers.engGlobal.start) timers.engGlobal.start = Date.now();
         
-        t[k].i = setInterval(() => {
-            t[k].e = Date.now() - t[k].s;
-            document.getElementById(k + '-disp').textContent = fmtHMS(t[k].e);
-            updateUI();
+        timers[id].interval = setInterval(() => {
+            timers[id].elapsed = Date.now() - timers[id].start;
+            document.getElementById(id + '-disp').innerText = format(timers[id].elapsed);
+            updateStats();
         }, 1000);
         
-        document.getElementById(k + '-start').disabled = true; 
-        document.getElementById(k + '-stop').disabled = false;
+        document.getElementById(id + '-start').disabled = true;
+        document.getElementById(id + '-stop').disabled = false;
     }
 
-    function stopT(k) {
-        t[k].r = false; clearInterval(t[k].i);
-        if(k === 'fl') t.fl.stopTS = getCleanTime();
-        if((k === 'e1' || k === 'e2') && !t.e1.r && !t.e2.r) t.gE.stop = Date.now();
+    function stopT(id) {
+        timers[id].running = false;
+        clearInterval(timers[id].interval);
+        if (id === 'fl') timers.fl.tsE = getTimeStr();
+        if ((id === 'e1' || id === 'e2') && !timers.e1.running && !timers.e2.running) timers.engGlobal.end = Date.now();
         
-        document.getElementById(k + '-start').disabled = false; 
-        document.getElementById(k + '-stop').disabled = true;
-        updateUI();
+        document.getElementById(id + '-start').disabled = false;
+        document.getElementById(id + '-stop').disabled = true;
+        updateStats();
     }
 
-    function resetRow(k) {
-        stopT(k); t[k].e = 0; document.getElementById(k + '-disp').textContent = "00:00:00";
-        if(k === 'fl') { t.fl.startTS = null; t.fl.stopTS = null; }
-        if(k !== 'fl' && !t.e1.r && !t.e2.r) { t.gE.start = null; t.gE.stop = null; }
-        updateUI();
+    function resetRow(id) {
+        stopT(id);
+        timers[id].elapsed = 0;
+        document.getElementById(id + '-disp').innerText = "00:00:00";
+        if (id === 'fl') { timers.fl.tsS = null; timers.fl.tsE = null; }
+        if (id !== 'fl' && !timers.e1.running && !timers.e2.running) { timers.engGlobal.start = null; timers.engGlobal.end = null; }
+        updateStats();
     }
 
     function saveLog() {
-        try {
-            let logData = localStorage.getItem(STORE_KEY);
-            let log = logData ? JSON.parse(logData) : [];
-            let eMs = (t.gE.stop || (t.gE.start ? Date.now() : t.gE.start)) - t.gE.start || 0;
-            
-            log.push({
-                d: new Date().toLocaleDateString(),
-                eb: document.getElementById('e-ts').textContent, en: (eMs / 3600000).toFixed(4),
-                fb: document.getElementById('f-ts').textContent, fl: (t.fl.e / 3600000).toFixed(4)
-            });
-            
-            localStorage.setItem(STORE_KEY, JSON.stringify(log));
-            alert("Flight Saved Locally.");
-        } catch(e) { 
-            alert("Storage Error: Your browser is blocking local saves. Check privacy settings."); 
-        }
+        let engMs = (timers.engGlobal.end || (timers.engGlobal.start ? Date.now() : timers.engGlobal.start)) - timers.engGlobal.start || 0;
+        let entry = {
+            date: new Date().toLocaleDateString(),
+            eb: document.getElementById('e-ts').innerText,
+            eh: (engMs / 3600000).toFixed(4),
+            fb: document.getElementById('f-ts').innerText,
+            fh: (timers.fl.elapsed / 3600000).toFixed(4)
+        };
+        let log = JSON.parse(localStorage.getItem('hLogV22') || '[]');
+        log.push(entry);
+        localStorage.setItem('hLogV22', JSON.stringify(log));
+        alert("Saved.");
     }
 
-    function toggleLog(show) {
-        document.getElementById('main-timer-page').style.display = show ? 'none' : 'flex';
-        document.getElementById('log-page').style.display = show ? 'block' : 'none';
-        
-        if(show) {
-            try {
-                let logData = localStorage.getItem(STORE_KEY);
-                let data = logData ? JSON.parse(logData) : [];
-                document.getElementById('log-body').innerHTML = data.map(i => `<tr><td>${i.d}</td><td>${i.eb}</td><td>${i.en}</td><td>${i.fb}</td><td>${i.fl}</td></tr>`).reverse().join('');
-            } catch(e) {
-                document.getElementById('log-body').innerHTML = "<tr><td colspan='5'>Unable to load data.</td></tr>";
-            }
-        }
+    function showLog() {
+        document.getElementById('main-timer-page').style.display = 'none';
+        document.getElementById('log-page').style.display = 'block';
+        let log = JSON.parse(localStorage.getItem('hLogV22') || '[]');
+        document.getElementById('log-body').innerHTML = log.map(i => `<tr><td>${i.date}</td><td>${i.eb}</td><td>${i.eh}</td><td>${i.fb}</td><td>${i.fh}</td></tr>`).reverse().join('');
     }
 
-    function clearAll() { 
-        if(confirm("Permanently delete all flight logs?")) { 
-            try {
-                localStorage.removeItem(STORE_KEY); 
-                toggleLog(true); 
-            } catch(e) {
-                alert("Error clearing data.");
-            }
-        } 
+    function hideLog() {
+        document.getElementById('log-page').style.display = 'none';
+        document.getElementById('main-timer-page').style.display = 'block';
+    }
+
+    function clearLogs() {
+        if(confirm("Clear logbook?")) { localStorage.removeItem('hLogV22'); showLog(); }
     }
 </script>
 </body>

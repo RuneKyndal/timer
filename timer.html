@@ -36,13 +36,15 @@
             margin-top: 20px; padding: 15px; font-size: 1.1rem; 
         }
 
-        .btn-mullah {
-            background: #28a745; color: #fff; width: 98%; max-width: 600px;
-            margin-top: 10px; padding: 15px; font-size: 1.1rem;
+        .mullah-box {
+            width: 98%; max-width: 600px; margin-top: 15px; padding: 15px;
+            background: #e9f7ef; border: 2px solid #28a745; border-radius: 8px;
+            text-align: center;
         }
 
+        .mullah-label { font-size: 0.9rem; font-weight: bold; color: #28a745; text-transform: uppercase; }
         .mullah-display {
-            font-size: 2rem; font-weight: bold; color: #28a745; margin-top: 10px; font-family: monospace;
+            font-size: 2.5rem; font-weight: bold; color: #1e7e34; margin-top: 5px; font-family: monospace;
         }
 
         .time-display {
@@ -131,9 +133,12 @@
         </div>
     </div>
 
+    <div class="mullah-box">
+        <div class="mullah-label">Phils Mullah ($265/hr)</div>
+        <div class="mullah-display" id="mullah-out">$0.00</div>
+    </div>
+
     <button class="btn-reset-all" onclick="masterReset()">RESET ALL DATA</button>
-    <button class="btn-mullah" onclick="calculateMullah()">Phils Mullah</button>
-    <div class="mullah-display" id="mullah-out">$0.00</div>
 
 <script>
     let timers = {
@@ -151,6 +156,11 @@
     function formatHMS(ms) {
         let s = Math.floor(ms / 1000);
         return [Math.floor(s/3600), Math.floor((s%3600)/60), s%60].map(v => v.toString().padStart(2,'0')).join(':');
+    }
+
+    function updateMullah(ms) {
+        let total = (ms / 3600000) * 265;
+        document.getElementById('mullah-out').textContent = "$" + total.toFixed(2);
     }
 
     function startTimer(key) {
@@ -171,6 +181,7 @@
                     let run = Date.now() - timers.globalEng.startTime;
                     document.getElementById('eng-run-hms').textContent = formatHMS(run);
                     document.getElementById('eng-run-dec').textContent = (run / 3600000).toFixed(1);
+                    updateMullah(run); // Real-time calculation
                 }, 1000);
             }
         }
@@ -204,6 +215,7 @@
             let total = timers.globalEng.stopTime - timers.globalEng.startTime;
             document.getElementById('eng-run-hms').textContent = formatHMS(total);
             document.getElementById('eng-run-dec').textContent = (total / 3600000).toFixed(1);
+            updateMullah(total);
         }
 
         document.getElementById(key + '-start').disabled = false;
@@ -226,19 +238,12 @@
             document.getElementById('eng-last-stop').textContent = "--:--";
             document.getElementById('eng-run-hms').textContent = "00:00:00";
             document.getElementById('eng-run-dec').textContent = "0.0";
+            document.getElementById('mullah-out').textContent = "$0.00";
         }
     }
 
     function masterReset() {
         ['e1', 'e2', 'fl'].forEach(key => resetRow(key));
-        document.getElementById('mullah-out').textContent = "$0.00";
-    }
-
-    function calculateMullah() {
-        // Now using eng-run-dec instead of fl-run-dec
-        let decimalHours = parseFloat(document.getElementById('eng-run-dec').textContent);
-        let total = decimalHours * 265;
-        document.getElementById('mullah-out').textContent = "$" + total.toFixed(2);
     }
 
     if ('serviceWorker' in navigator) {

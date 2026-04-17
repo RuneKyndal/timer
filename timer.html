@@ -3,10 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Helicopter Flight Timer v1.17</title>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="HeliTimer">
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+
+    <title>Helicopter Flight Timer v1.19</title>
     <style>
-        body { background: #fff; color: #000; font-family: sans-serif; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        body { background: #fff; color: #000; font-family: sans-serif; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; -webkit-tap-highlight-color: transparent; }
         h1 { font-size: 1.5rem; margin: 5px 0; border-bottom: 3px solid #000; width: 98%; max-width: 600px; text-align: center; }
         
         .ui-element { width: 98%; max-width: 600px; box-sizing: border-box; margin-bottom: 8px; }
@@ -14,30 +21,23 @@
         .timer-row { display: flex; align-items: center; justify-content: space-between; padding: 12px; border: 2px solid #000; border-radius: 10px; }
         .label { font-size: 1rem; font-weight: bold; width: 60px; }
         
-        /* Force larger button container */
         .controls { display: flex; gap: 8px; flex-grow: 1; justify-content: center; }
         
-        button { font-weight: bold; border-radius: 8px; border: 2px solid #000; cursor: pointer; text-transform: uppercase; }
+        button { font-weight: bold; border-radius: 8px; border: 2px solid #000; cursor: pointer; text-transform: uppercase; touch-action: manipulation; }
         
-        /* Force Large Button Dimensions */
-        .btn-timer { 
-            min-height: 55px; 
-            min-width: 80px; 
-            font-size: 1rem; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        /* High-Visibility Buttons */
+        .btn-timer { min-height: 60px; min-width: 85px; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; }
         
         .btn-start { background: #00ff00; color: #000; }
         .btn-stop { background: #ff0000; color: #fff; }
+        .btn-stop:disabled { background: #660000; color: #aaa; opacity: 0.6; }
         .btn-row-reset { background: #ddd; font-size: 0.9rem; min-width: 60px; }
         
         .time-display { font-family: monospace; font-size: 1.4rem; font-weight: bold; min-width: 100px; text-align: right; }
 
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .stat-box { background: #f0f0f0; padding: 12px; border: 2px solid #000; border-radius: 10px; font-weight: bold; text-align: center; }
-        .ts-info { font-size: 0.75rem; color: #444; display: block; margin-bottom: 6px; }
+        .ts-info { font-size: 0.75rem; color: #444; display: block; margin-bottom: 6px; min-height: 2.5em; }
         .total-hms { font-size: 1.4rem; font-family: monospace; display: block; border-top: 1px solid #aaa; margin-top: 6px; padding-top: 6px; }
         .total-dec { font-size: 1.1rem; font-family: monospace; color: #222; display: block; margin-top: 4px; }
 
@@ -126,72 +126,93 @@
     </div>
 
 <script>
+    // SELF-REGISTERING SERVICE WORKER (For Offline Support)
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            const code = `
+                const cacheName = 'heli-v1.19';
+                self.addEventListener('install', e => e.waitUntil(caches.open(cacheName).then(c => c.addAll(['./']))));
+                self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
+            `;
+            const blob = new Blob([code], {type: 'text/javascript'});
+            navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(err => console.log("Offline mode limited: Direct file open detected."));
+        });
+    }
+
     let t = { e1:{e:0,s:null,i:null,r:false}, e2:{e:0,s:null,i:null,r:false}, fl:{e:0,s:null,i:null,r:false}, gE:{start:null,stop:null} };
 
-    function nowHMS() { return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }); }
-    function fmtHMS(ms) { let s=Math.floor(ms/1000); return [Math.floor(s/3600),Math.floor((s%3600)/60),s%60].map(v=>v.toString().padStart(2,'0')).join(':'); }
+    function getCleanTime(dateObj) {
+        let d = dateObj ? new Date(dateObj) : new Date();
+        return [d.getHours(), d.getMinutes(), d.getSeconds()].map(v => v.toString().padStart(2, '0')).join(':');
+    }
+
+    function fmtHMS(ms) {
+        let s = Math.floor(ms / 1000);
+        return [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s % 60].map(v => v.toString().padStart(2, '0')).join(':');
+    }
 
     function updateUI() {
         let eMs = (t.gE.stop || (t.gE.start ? Date.now() : t.gE.start)) - t.gE.start || 0;
         document.getElementById('e-hms').textContent = fmtHMS(eMs);
-        document.getElementById('e-dec').textContent = (eMs/3600000).toFixed(4) + " h";
-        document.getElementById('e-ts').textContent = (t.gE.start ? new Date(t.gE.start).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}) : "--:--:--") + " to " + (t.gE.stop ? new Date(t.gE.stop).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}) : "--:--:--");
+        document.getElementById('e-dec').textContent = (eMs / 3600000).toFixed(4) + " h";
+        document.getElementById('e-ts').textContent = (t.gE.start ? getCleanTime(t.gE.start) : "--:--:--") + " to " + (t.gE.stop ? getCleanTime(t.gE.stop) : "--:--:--");
         
         let fMs = t.fl.e;
         document.getElementById('f-hms').textContent = fmtHMS(fMs);
-        document.getElementById('f-dec').textContent = (fMs/3600000).toFixed(4) + " h";
+        document.getElementById('f-dec').textContent = (fMs / 3600000).toFixed(4) + " h";
         document.getElementById('f-ts').textContent = (t.fl.startTS || "--:--:--") + " to " + (t.fl.stopTS || "--:--:--");
     }
 
     function startT(k) {
         t[k].r = true; t[k].s = Date.now() - t[k].e;
-        if(k==='fl' && !t.fl.startTS) t.fl.startTS = nowHMS();
-        if((k==='e1'||k==='e2') && !t.gE.start) t.gE.start = Date.now();
+        if(k === 'fl' && !t.fl.startTS) t.fl.startTS = getCleanTime();
+        if((k === 'e1' || k === 'e2') && !t.gE.start) { t.gE.start = Date.now(); t.gE.stop = null; }
         t[k].i = setInterval(() => {
             t[k].e = Date.now() - t[k].s;
-            document.getElementById(k+'-disp').textContent = fmtHMS(t[k].e);
+            document.getElementById(k + '-disp').textContent = fmtHMS(t[k].e);
             updateUI();
         }, 1000);
-        document.getElementById(k+'-start').disabled = true; document.getElementById(k+'-stop').disabled = false;
+        document.getElementById(k + '-start').disabled = true; document.getElementById(k + '-stop').disabled = false;
     }
 
     function stopT(k) {
         t[k].r = false; clearInterval(t[k].i);
-        if(k==='fl') t.fl.stopTS = nowHMS();
-        if((k==='e1'||k==='e2') && !t.e1.r && !t.e2.r) t.gE.stop = Date.now();
-        document.getElementById(k+'-start').disabled = false; document.getElementById(k+'-stop').disabled = true;
+        if(k === 'fl') t.fl.stopTS = getCleanTime();
+        if((k === 'e1' || k === 'e2') && !t.e1.r && !t.e2.r) t.gE.stop = Date.now();
+        document.getElementById(k + '-start').disabled = false; document.getElementById(k + '-stop').disabled = true;
         updateUI();
     }
 
     function resetRow(k) {
-        stopT(k); t[k].e = 0; document.getElementById(k+'-disp').textContent = "00:00:00";
-        if(k==='fl') { t.fl.startTS = null; t.fl.stopTS = null; }
-        if(k!=='fl' && !t.e1.r && !t.e2.r) { t.gE.start = null; t.gE.stop = null; }
+        stopT(k); t[k].e = 0; document.getElementById(k + '-disp').textContent = "00:00:00";
+        if(k === 'fl') { t.fl.startTS = null; t.fl.stopTS = null; }
+        if(k !== 'fl' && !t.e1.r && !t.e2.r) { t.gE.start = null; t.gE.stop = null; }
         updateUI();
     }
 
     function saveLog() {
-        const log = JSON.parse(localStorage.getItem('heliLogV17') || '[]');
-        let eMs = (t.gE.stop || (t.gE.start ? Date.now() : t.gE.start)) - t.gE.start || 0;
-        let fMs = t.fl.e;
-        log.push({
-            d: new Date().toLocaleDateString(),
-            eb: document.getElementById('e-ts').textContent, en: (eMs/3600000).toFixed(4),
-            fb: document.getElementById('f-ts').textContent, fl: (fMs/3600000).toFixed(4)
-        });
-        localStorage.setItem('heliLogV17', JSON.stringify(log));
-        alert("Flight Saved.");
+        try {
+            const log = JSON.parse(localStorage.getItem('heliLogV19') || '[]');
+            let eMs = (t.gE.stop || (t.gE.start ? Date.now() : t.gE.start)) - t.gE.start || 0;
+            log.push({
+                d: new Date().toLocaleDateString(),
+                eb: document.getElementById('e-ts').textContent, en: (eMs / 3600000).toFixed(4),
+                fb: document.getElementById('f-ts').textContent, fl: (t.fl.e / 3600000).toFixed(4)
+            });
+            localStorage.setItem('heliLogV19', JSON.stringify(log));
+            alert("Flight Logged.");
+        } catch(e) { alert("Save failed: Device storage restricted."); }
     }
 
     function toggleLog(show) {
         document.getElementById('log-page').style.display = show ? 'block' : 'none';
         if(show) {
-            const data = JSON.parse(localStorage.getItem('heliLogV17') || '[]');
-            document.getElementById('log-body').innerHTML = data.map(i => `<tr><td>${i.d}</td><td>${i.eb}</td><td>${i.en}</td><td>${i.fb}</td><td>${i.fl}</td></tr>`).join('');
+            const data = JSON.parse(localStorage.getItem('heliLogV19') || '[]');
+            document.getElementById('log-body').innerHTML = data.map(i => `<tr><td>${i.d}</td><td>${i.eb}</td><td>${i.en}</td><td>${i.fb}</td><td>${i.fl}</td></tr>`).reverse().join('');
         }
     }
 
-    function clearAll() { if(confirm("Nuke history?")) { localStorage.removeItem('heliLogV17'); toggleLog(true); } }
+    function clearAll() { if(confirm("Clear all records?")) { localStorage.removeItem('heliLogV19'); toggleLog(true); } }
 </script>
 </body>
 </html>

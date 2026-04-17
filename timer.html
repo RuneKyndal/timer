@@ -4,43 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Helicopter Flight Timer v1.15</title>
+    <title>Helicopter Flight Timer v1.17</title>
     <style>
         body { background: #fff; color: #000; font-family: sans-serif; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         h1 { font-size: 1.5rem; margin: 5px 0; border-bottom: 3px solid #000; width: 98%; max-width: 600px; text-align: center; }
         
         .ui-element { width: 98%; max-width: 600px; box-sizing: border-box; margin-bottom: 8px; }
 
-        .timer-row { display: flex; align-items: center; justify-content: space-between; padding: 8px; border: 2px solid #000; border-radius: 8px; }
-        .label { font-size: 0.9rem; font-weight: bold; width: 50px; }
-        .controls { display: flex; gap: 4px; }
+        .timer-row { display: flex; align-items: center; justify-content: space-between; padding: 12px; border: 2px solid #000; border-radius: 10px; }
+        .label { font-size: 1rem; font-weight: bold; width: 60px; }
         
-        button { padding: 8px; font-size: 0.8rem; font-weight: bold; border-radius: 4px; border: 2px solid #000; cursor: pointer; }
-        .btn-start { background: #00ff00; }
+        /* Force larger button container */
+        .controls { display: flex; gap: 8px; flex-grow: 1; justify-content: center; }
+        
+        button { font-weight: bold; border-radius: 8px; border: 2px solid #000; cursor: pointer; text-transform: uppercase; }
+        
+        /* Force Large Button Dimensions */
+        .btn-timer { 
+            min-height: 55px; 
+            min-width: 80px; 
+            font-size: 1rem; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-start { background: #00ff00; color: #000; }
         .btn-stop { background: #ff0000; color: #fff; }
-        .btn-row-reset { background: #eee; font-size: 0.7rem; }
+        .btn-row-reset { background: #ddd; font-size: 0.9rem; min-width: 60px; }
         
-        .time-display { font-family: monospace; font-size: 1.2rem; font-weight: bold; min-width: 85px; text-align: right; }
+        .time-display { font-family: monospace; font-size: 1.4rem; font-weight: bold; min-width: 100px; text-align: right; }
 
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .stat-box { background: #f0f0f0; padding: 10px; border: 2px solid #000; border-radius: 8px; font-weight: bold; text-align: center; }
-        .ts-info { font-size: 0.7rem; color: #444; display: block; margin-bottom: 4px; }
-        .total-hms { font-size: 1.3rem; font-family: monospace; display: block; border-top: 1px solid #aaa; margin-top: 5px; padding-top: 5px; }
-        .total-dec { font-size: 1rem; font-family: monospace; color: #333; display: block; margin-top: 2px; }
+        .stat-box { background: #f0f0f0; padding: 12px; border: 2px solid #000; border-radius: 10px; font-weight: bold; text-align: center; }
+        .ts-info { font-size: 0.75rem; color: #444; display: block; margin-bottom: 6px; }
+        .total-hms { font-size: 1.4rem; font-family: monospace; display: block; border-top: 1px solid #aaa; margin-top: 6px; padding-top: 6px; }
+        .total-dec { font-size: 1.1rem; font-family: monospace; color: #222; display: block; margin-top: 4px; }
 
-        .action-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px; }
-        .btn-act { padding: 15px 0; text-transform: uppercase; color: #fff; }
+        .action-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 15px; }
+        .btn-act { padding: 20px 0; color: #fff; font-size: 1rem; }
         .b-reset { background: #000; }
         .b-save { background: #007bff; }
         .b-load { background: #6c757d; }
 
         #log-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 100; overflow-y: auto; padding: 15px; box-sizing: border-box; }
-        .log-table { width: 100%; border-collapse: collapse; font-size: 0.65rem; margin: 15px 0; }
-        .log-table th, .log-table td { border: 1px solid #000; padding: 4px; text-align: center; }
+        .log-table { width: 100%; border-collapse: collapse; font-size: 0.7rem; margin: 20px 0; }
+        .log-table th, .log-table td { border: 1px solid #000; padding: 6px; text-align: center; }
         
-        .log-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
-        .btn-log-back { background: #28a745; color: white; padding: 15px; }
-        .btn-log-del { background: #dc3545; color: white; padding: 15px; }
+        .log-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+        .btn-log-back { background: #28a745; color: white; padding: 20px; font-size: 1.1rem; }
+        .btn-log-del { background: #dc3545; color: white; padding: 20px; font-size: 1.1rem; }
     </style>
 </head>
 <body>
@@ -51,9 +64,9 @@
         <div class="ui-element timer-row">
             <div class="label">ENG 1</div>
             <div class="controls">
-                <button class="btn-start" id="e1-start" onclick="startT('e1')">START</button>
-                <button class="btn-stop" id="e1-stop" onclick="stopT('e1')" disabled>STOP</button>
-                <button class="btn-row-reset" onclick="resetRow('e1')">RST</button>
+                <button class="btn-timer btn-start" id="e1-start" onclick="startT('e1')">START</button>
+                <button class="btn-timer btn-stop" id="e1-stop" onclick="stopT('e1')" disabled>STOP</button>
+                <button class="btn-timer btn-row-reset" onclick="resetRow('e1')">RST</button>
             </div>
             <div class="time-display" id="e1-disp">00:00:00</div>
         </div>
@@ -61,9 +74,9 @@
         <div class="ui-element timer-row">
             <div class="label">ENG 2</div>
             <div class="controls">
-                <button class="btn-start" id="e2-start" onclick="startT('e2')">START</button>
-                <button class="btn-stop" id="e2-stop" onclick="stopT('e2')" disabled>STOP</button>
-                <button class="btn-row-reset" onclick="resetRow('e2')">RST</button>
+                <button class="btn-timer btn-start" id="e2-start" onclick="startT('e2')">START</button>
+                <button class="btn-timer btn-stop" id="e2-stop" onclick="stopT('e2')" disabled>STOP</button>
+                <button class="btn-timer btn-row-reset" onclick="resetRow('e2')">RST</button>
             </div>
             <div class="time-display" id="e2-disp">00:00:00</div>
         </div>
@@ -71,9 +84,9 @@
         <div class="ui-element timer-row" style="background: #e6f3ff;">
             <div class="label">FLIGHT</div>
             <div class="controls">
-                <button class="btn-start" id="fl-start" onclick="startT('fl')">START</button>
-                <button class="btn-stop" id="fl-stop" onclick="stopT('fl')" disabled>STOP</button>
-                <button class="btn-row-reset" onclick="resetRow('fl')">RST</button>
+                <button class="btn-timer btn-start" id="fl-start" onclick="startT('fl')">START</button>
+                <button class="btn-timer btn-stop" id="fl-stop" onclick="stopT('fl')" disabled>STOP</button>
+                <button class="btn-timer btn-row-reset" onclick="resetRow('fl')">RST</button>
             </div>
             <div class="time-display" id="fl-disp">00:00:00</div>
         </div>
@@ -158,7 +171,7 @@
     }
 
     function saveLog() {
-        const log = JSON.parse(localStorage.getItem('heliLogV15') || '[]');
+        const log = JSON.parse(localStorage.getItem('heliLogV17') || '[]');
         let eMs = (t.gE.stop || (t.gE.start ? Date.now() : t.gE.start)) - t.gE.start || 0;
         let fMs = t.fl.e;
         log.push({
@@ -166,19 +179,19 @@
             eb: document.getElementById('e-ts').textContent, en: (eMs/3600000).toFixed(4),
             fb: document.getElementById('f-ts').textContent, fl: (fMs/3600000).toFixed(4)
         });
-        localStorage.setItem('heliLogV15', JSON.stringify(log));
+        localStorage.setItem('heliLogV17', JSON.stringify(log));
         alert("Flight Saved.");
     }
 
     function toggleLog(show) {
         document.getElementById('log-page').style.display = show ? 'block' : 'none';
         if(show) {
-            const data = JSON.parse(localStorage.getItem('heliLogV15') || '[]');
+            const data = JSON.parse(localStorage.getItem('heliLogV17') || '[]');
             document.getElementById('log-body').innerHTML = data.map(i => `<tr><td>${i.d}</td><td>${i.eb}</td><td>${i.en}</td><td>${i.fb}</td><td>${i.fl}</td></tr>`).join('');
         }
     }
 
-    function clearAll() { if(confirm("Nuke history?")) { localStorage.removeItem('heliLogV15'); toggleLog(true); } }
+    function clearAll() { if(confirm("Nuke history?")) { localStorage.removeItem('heliLogV17'); toggleLog(true); } }
 </script>
 </body>
 </html>

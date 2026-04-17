@@ -1,6 +1,6 @@
 {
-  "name": "Bell 214 Timer",
-  "short_name": "214 Timer",
+  "name": "Phils Flight Timer",
+  "short_name": "Phils Timer",
   "start_url": "timer.html",
   "display": "standalone",
   "orientation": "portrait",

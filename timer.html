@@ -30,7 +30,10 @@
         .btn-start { background: #00ff00; color: #000; }
         .btn-stop { background: #ff0000; color: #fff; }
         .btn-clear { background: #fff; color: #000; }
-        button:disabled { background: #eee; color: #aaa; border-color: #ccc; }
+        .btn-reset-all { 
+            background: #000; color: #fff; width: 98%; max-width: 600px; 
+            margin-top: 20px; padding: 18px; font-size: 1.2rem; 
+        }
 
         .time-display {
             font-family: monospace; font-size: 1.4rem; font-weight: bold;
@@ -45,7 +48,7 @@
             background: #f0f0f0; padding: 12px; border: 2px solid #000; border-radius: 8px;
             font-weight: bold; text-align: center;
         }
-        .total-val { font-size: 1.6rem; font-family: monospace; display: block; margin-top: 5px; border-top: 1px solid #aaa; padding-top: 5px; }
+        .total-val { font-size: 1.4rem; font-family: monospace; display: block; margin-top: 5px; border-top: 1px solid #aaa; padding-top: 5px; }
         .timestamp { font-size: 1.2rem; color: #000; }
         .ts-label { font-size: 0.8rem; color: #555; text-transform: uppercase; margin-bottom: 2px; display: block; }
     </style>
@@ -97,7 +100,7 @@
             </div>
             <div class="total-val">
                 <span id="eng-run-hms">00:00:00</span>
-                <div style="font-size: 1.2rem;" id="eng-run-dec">0.0</div>
+                <div style="font-size: 1.1rem;" id="eng-run-dec">0.0</div>
             </div>
         </div>
 
@@ -113,10 +116,12 @@
             </div>
             <div class="total-val">
                 <span id="fl-run-hms">00:00:00</span>
-                <div style="font-size: 1.2rem;" id="fl-run-dec">0.0</div>
+                <div style="font-size: 1.1rem;" id="fl-run-dec">0.0</div>
             </div>
         </div>
     </div>
+
+    <button class="btn-reset-all" onclick="masterReset()">RESET ALL DATA</button>
 
 <script>
     let timers = {
@@ -210,6 +215,10 @@
             document.getElementById('eng-run-hms').textContent = "00:00:00";
             document.getElementById('eng-run-dec').textContent = "0.0";
         }
+    }
+
+    function masterReset() {
+        ['e1', 'e2', 'fl'].forEach(key => resetRow(key));
     }
 
     if ('serviceWorker' in navigator) {

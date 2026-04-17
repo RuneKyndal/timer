@@ -4,275 +4,215 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>Phil's timer version 1.1</title>
-    <link rel="manifest" href="timer.json">
+    <title>Phil's Log v1.5</title>
     <style>
-        body { 
-            background: #fff; color: #000; font-family: sans-serif; 
-            margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center;
-        }
-        h1 { font-size: 1.6rem; margin: 10px 0; border-bottom: 3px solid #000; width: 100%; text-align: center; }
+        body { background: #fff; color: #000; font-family: sans-serif; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        h1 { font-size: 1.4rem; margin: 5px 0; border-bottom: 2px solid #000; width: 100%; text-align: center; }
         
-        .timer-row {
-            width: 98%; max-width: 600px;
-            display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 10px; padding: 10px; border: 2px solid #000; border-radius: 8px;
-        }
-
-        .label { font-size: 1rem; font-weight: bold; width: 60px; }
-        .controls { display: flex; gap: 5px; }
+        .section-label { width: 100%; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; color: #666; margin: 10px 0 5px 5px; }
         
-        button {
-            padding: 10px 12px; font-size: 0.9rem; font-weight: bold;
-            border-radius: 4px; border: 2px solid #000; cursor: pointer;
-        }
-        .btn-start { background: #00ff00; color: #000; }
-        .btn-stop { background: #ff0000; color: #fff; }
-        .btn-clear { background: #fff; color: #000; }
+        .timer-card { width: 98%; max-width: 600px; border: 2px solid #000; border-radius: 10px; padding: 10px; margin-bottom: 15px; box-sizing: border-box; }
+        .engine-bg { background: #fff; }
+        .flight-bg { background: #e6f3ff; border-color: #007bff; }
+
+        .row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .display { font-family: monospace; font-size: 1.6rem; font-weight: bold; }
         
-        .btn-reset-all { 
-            background: #000; color: #fff; width: 98%; max-width: 600px; 
-            margin-top: 20px; padding: 15px; font-size: 1.1rem; 
-        }
+        .stats-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 5px; border-top: 1px solid #ccc; padding-top: 8px; font-size: 0.85rem; }
+        .stat-item { text-align: center; }
+        .stat-val { display: block; font-family: monospace; font-size: 1.1rem; font-weight: bold; }
 
-        .mullah-box {
-            width: 98%; max-width: 600px; margin-top: 15px; padding: 10px;
-            background: #e9f7ef; border: 2px solid #28a745; border-radius: 8px;
-        }
-        .mullah-table {
-            width: 100%; border-collapse: collapse; text-align: center;
-        }
-        .mullah-table th { font-size: 0.75rem; color: #28a745; text-transform: uppercase; padding-bottom: 5px; }
-        .mullah-table td { 
-            font-family: monospace; font-size: 1.1rem; font-weight: bold; color: #1e7e34;
-            border-top: 1px solid #c3e6cb; padding-top: 8px;
-        }
+        button { padding: 12px; font-size: 0.9rem; font-weight: bold; border-radius: 6px; border: 2px solid #000; cursor: pointer; }
+        .btn-start { background: #00ff00; width: 80px; }
+        .btn-stop { background: #ff0000; color: #fff; width: 80px; }
+        
+        .mullah-box { width: 98%; max-width: 600px; padding: 8px; background: #e9f7ef; border: 1px solid #28a745; border-radius: 8px; font-size: 0.75rem; margin-bottom: 10px; }
+        .mullah-table { width: 100%; border-collapse: collapse; text-align: center; }
 
-        .time-display {
-            font-family: monospace; font-size: 1.4rem; font-weight: bold;
-            min-width: 100px; text-align: right;
-        }
-
-        .stats-grid {
-            width: 98%; max-width: 600px; margin-top: 10px;
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-        }
-        .stat-box { 
-            background: #f0f0f0; padding: 12px; border: 2px solid #000; border-radius: 8px;
-            font-weight: bold; text-align: center;
-        }
-        .total-val { font-size: 1.4rem; font-family: monospace; display: block; margin-top: 5px; border-top: 1px solid #aaa; padding-top: 5px; }
-        .timestamp { font-size: 1.2rem; color: #000; }
-        .ts-label { font-size: 0.8rem; color: #555; text-transform: uppercase; margin-bottom: 2px; display: block; }
+        .action-btn { width: 98%; max-width: 600px; margin-top: 8px; padding: 15px; color: #fff; }
+        
+        /* Logbook Overlay */
+        #history-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 100; overflow-y: auto; padding: 10px; box-sizing: border-box; }
+        .log-table { width: 100%; border-collapse: collapse; font-size: 0.7rem; margin-top: 10px; }
+        .log-table th, .log-table td { border: 1px solid #000; padding: 5px; text-align: center; }
+        .sep { background: #eee; font-weight: bold; }
+        
+        .delete-btn { background: #ff4444; color: white; width: 100%; margin-top: 30px; border: 2px solid #cc0000; }
     </style>
 </head>
 <body>
 
-    <h1>Phils Flight Timer</h1>
+    <div id="main-ui">
+        <h1>Phils Timer Log</h1>
 
-    <div class="timer-row">
-        <div class="label">ENG 1</div>
-        <div class="controls">
-            <button class="btn-start" id="e1-start" onclick="startTimer('e1')">START</button>
-            <button class="btn-stop" id="e1-stop" onclick="stopTimer('e1')" disabled>STOP</button>
-            <button class="btn-clear" onclick="resetRow('e1')">RST</button>
-        </div>
-        <div class="time-display" id="e1-display">00:00:00</div>
-    </div>
-
-    <div class="timer-row">
-        <div class="label">ENG 2</div>
-        <div class="controls">
-            <button class="btn-start" id="e2-start" onclick="startTimer('e2')">START</button>
-            <button class="btn-stop" id="e2-stop" onclick="stopTimer('e2')" disabled>STOP</button>
-            <button class="btn-clear" onclick="resetRow('e2')">RST</button>
-        </div>
-        <div class="time-display" id="e2-display">00:00:00</div>
-    </div>
-
-    <div class="timer-row" style="background: #e6f3ff;">
-        <div class="label">FLIGHT</div>
-        <div class="controls">
-            <button class="btn-start" id="fl-start" onclick="startTimer('fl')">START</button>
-            <button class="btn-stop" id="fl-stop" onclick="stopTimer('fl')" disabled>STOP</button>
-            <button class="btn-clear" onclick="resetRow('fl')">RST</button>
-        </div>
-        <div class="time-display" id="fl-display">00:00:00</div>
-    </div>
-
-    <div class="stats-grid">
-        <div class="stat-box">
-            ENGINE RUN
-            <div style="margin: 8px 0;">
-                <span class="ts-label">Start</span>
-                <span class="timestamp" id="eng-first-start">--:--</span>
-                <div style="margin-top: 8px;">
-                    <span class="ts-label">Stop</span>
-                    <span class="timestamp" id="eng-last-stop">--:--</span>
+        <div class="section-label">Engine Management</div>
+        <div class="timer-card engine-bg">
+            <div class="row">
+                <span style="font-weight: bold;">ENGINES</span>
+                <div class="display" id="eng-timer">00:00:00</div>
+                <div style="display: flex; gap: 5px;">
+                    <button class="btn-start" id="eng-start-btn" onclick="startEng()">START</button>
+                    <button class="btn-stop" id="eng-stop-btn" onclick="stopEng()" disabled>STOP</button>
                 </div>
             </div>
-            <div class="total-val">
-                <span id="eng-run-hms">00:00:00</span>
-                <div style="font-size: 1.1rem;" id="eng-run-dec">0.0</div>
+            <div class="stats-row">
+                <div class="stat-item">TIMES<span class="stat-val" id="eng-ts">--:-- to --:--</span></div>
+                <div class="stat-item">MINS<span class="stat-val" id="eng-mins">0</span></div>
+                <div class="stat-item">DECIMAL<span class="stat-val" id="eng-dec">0.0</span></div>
             </div>
         </div>
 
-        <div class="stat-box" style="background: #e6f3ff;">
-            FLIGHT TIME
-            <div style="margin: 8px 0;">
-                <span class="ts-label">UP</span>
-                <span class="timestamp" id="up-time">--:--</span>
-                <div style="margin-top: 8px;">
-                    <span class="ts-label">DN</span>
-                    <span class="timestamp" id="down-time">--:--</span>
+        <div class="section-label">Flight Log</div>
+        <div class="timer-card flight-bg">
+            <div class="row">
+                <span style="font-weight: bold;">AIRBORNE</span>
+                <div class="display" id="fl-timer">00:00:00</div>
+                <div style="display: flex; gap: 5px;">
+                    <button class="btn-start" id="fl-start-btn" onclick="startFl()">UP</button>
+                    <button class="btn-stop" id="fl-stop-btn" onclick="stopFl()" disabled>DOWN</button>
                 </div>
             </div>
-            <div class="total-val">
-                <span id="fl-run-hms">00:00:00</span>
-                <div style="font-size: 1.1rem;" id="fl-run-dec">0.0</div>
+            <div class="stats-row">
+                <div class="stat-item">TIMES<span class="stat-val" id="fl-ts">--:-- to --:--</span></div>
+                <div class="stat-item">MINS<span class="stat-val" id="fl-mins">0</span></div>
+                <div class="stat-item">DECIMAL<span class="stat-val" id="fl-dec">0.0</span></div>
             </div>
         </div>
+
+        <div class="mullah-box">
+            <table class="mullah-table">
+                <tr><th>Flt Pay</th><th>Tax</th><th>Wife</th><th>Phil</th></tr>
+                <tr><td id="m-flt">$0.00</td><td id="m-tax">$0.00</td><td id="m-wife">$0.00</td><td id="m-phil">$0.00</td></tr>
+            </table>
+        </div>
+
+        <button class="action-btn" style="background: #007bff;" onclick="saveLog()">SAVE TO LOGBOOK</button>
+        <button class="action-btn" style="background: #6c757d;" onclick="toggleHistory(true)">VIEW LOGBOOK</button>
+        <button class="action-btn" style="background: #000;" onclick="location.reload()">RESET CURRENT</button>
     </div>
 
-    <div class="mullah-box">
-        <table class="mullah-table">
+    <div id="history-page">
+        <h1>Logbook Records</h1>
+        <button class="action-btn" style="background: #000;" onclick="toggleHistory(false)">BACK TO TIMERS</button>
+        
+        <table class="log-table">
             <thead>
                 <tr>
-                    <th>Flt Pay</th>
-                    <th>Taxes 50%</th>
-                    <th>Wife (75%)</th>
-                    <th>Phil</th>
+                    <th>Date</th>
+                    <th class="sep">Engine Run</th>
+                    <th>E-Min</th>
+                    <th>E-Dec</th>
+                    <th class="sep">Flight Time</th>
+                    <th>F-Min</th>
+                    <th>F-Dec</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td id="m-flt">$0.00</td>
-                    <td id="m-tax">$0.00</td>
-                    <td id="m-wife">$0.00</td>
-                    <td id="m-phil">$0.00</td>
-                </tr>
-            </tbody>
+            <tbody id="log-body"></tbody>
         </table>
+
+        <button class="delete-btn" onclick="clearLogs()">DELETE ALL RECORDS</button>
     </div>
 
-    <button class="btn-reset-all" onclick="masterReset()">RESET ALL DATA</button>
-
 <script>
-    let timers = {
-        e1: { elapsed: 0, start: null, interval: null, running: false },
-        e2: { elapsed: 0, start: null, interval: null, running: false },
-        fl: { elapsed: 0, start: null, interval: null, running: false },
-        globalEng: { startTime: null, stopTime: null, elapsed: 0, interval: null }
-    };
+    let eng = { elapsed: 0, startTS: null, stopTS: null, interval: null, startTime: null };
+    let flt = { elapsed: 0, startTS: null, stopTS: null, interval: null, startTime: null };
 
-    function getTimeOfDay() {
-        let now = new Date();
-        return now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
-    }
+    function getNow() { return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }); }
+    function fmtHMS(ms) { let s = Math.floor(ms/1000); return [Math.floor(s/3600), Math.floor((s%3600)/60), s%60].map(v => v.toString().padStart(2,'0')).join(':'); }
 
-    function formatHMS(ms) {
-        let s = Math.floor(ms / 1000);
-        return [Math.floor(s/3600), Math.floor((s%3600)/60), s%60].map(v => v.toString().padStart(2,'0')).join(':');
-    }
-
-    function updateMullah(ms) {
-        let fltPay = (ms / 3600000) * 265;
-        let tax = fltPay * 0.50;
-        let net = fltPay - tax;
-        let wife = net * 0.75;
-        let phil = net - wife;
-
-        document.getElementById('m-flt').textContent = "$" + fltPay.toFixed(2);
-        document.getElementById('m-tax').textContent = "$" + tax.toFixed(2);
-        document.getElementById('m-wife').textContent = "$" + wife.toFixed(2);
-        document.getElementById('m-phil').textContent = "$" + phil.toFixed(2);
-    }
-
-    function startTimer(key) {
-        timers[key].running = true;
-        timers[key].start = Date.now() - timers[key].elapsed;
+    function updateStats() {
+        let eMins = Math.floor(eng.elapsed / 60000);
+        let eDec = (eng.elapsed / 3600000).toFixed(1);
+        document.getElementById('eng-mins').textContent = eMins;
+        document.getElementById('eng-dec').textContent = eDec;
+        document.getElementById('eng-ts').textContent = (eng.startTS || "--:--") + " to " + (eng.stopTS || "--:--");
         
-        if (key === 'fl') document.getElementById('up-time').textContent = getTimeOfDay();
+        let pay = (eng.elapsed / 3600000) * 265;
+        document.getElementById('m-flt').textContent = "$" + pay.toFixed(2);
+        document.getElementById('m-tax').textContent = "$" + (pay * 0.5).toFixed(2);
+        document.getElementById('m-wife').textContent = "$" + (pay * 0.5 * 0.75).toFixed(2);
+        document.getElementById('m-phil').textContent = "$" + (pay * 0.5 * 0.25).toFixed(2);
 
-        if (key === 'e1' || key === 'e2') {
-            if (!timers.globalEng.startTime) {
-                timers.globalEng.startTime = Date.now();
-                document.getElementById('eng-first-start').textContent = getTimeOfDay();
-            }
-            if (!timers.globalEng.interval) {
-                timers.globalEng.interval = setInterval(() => {
-                    let run = Date.now() - timers.globalEng.startTime;
-                    document.getElementById('eng-run-hms').textContent = formatHMS(run);
-                    document.getElementById('eng-run-dec').textContent = (run / 3600000).toFixed(1);
-                    updateMullah(run);
-                }, 1000);
-            }
-        }
+        let fMins = Math.floor(flt.elapsed / 60000);
+        let fDec = (flt.elapsed / 3600000).toFixed(1);
+        document.getElementById('fl-mins').textContent = fMins;
+        document.getElementById('fl-dec').textContent = fDec;
+        document.getElementById('fl-ts').textContent = (flt.startTS || "--:--") + " to " + (flt.stopTS || "--:--");
+    }
 
-        timers[key].interval = setInterval(() => {
-            timers[key].elapsed = Date.now() - timers[key].start;
-            document.getElementById(key + '-display').textContent = formatHMS(timers[key].elapsed);
-            if (key === 'fl') {
-                document.getElementById('fl-run-hms').textContent = formatHMS(timers[key].elapsed);
-                document.getElementById('fl-run-dec').textContent = (timers[key].elapsed / 3600000).toFixed(1);
-            }
+    function startEng() {
+        if (!eng.startTS) eng.startTS = getNow();
+        eng.startTime = Date.now() - eng.elapsed;
+        eng.interval = setInterval(() => {
+            eng.elapsed = Date.now() - eng.startTime;
+            document.getElementById('eng-timer').textContent = fmtHMS(eng.elapsed);
+            updateStats();
         }, 1000);
-
-        document.getElementById(key + '-start').disabled = true;
-        document.getElementById(key + '-stop').disabled = false;
+        document.getElementById('eng-start-btn').disabled = true;
+        document.getElementById('eng-stop-btn').disabled = false;
     }
 
-    function stopTimer(key) {
-        timers[key].running = false;
-        clearInterval(timers[key].interval);
-        
-        if (key === 'fl') document.getElementById('down-time').textContent = getTimeOfDay();
+    function stopEng() {
+        clearInterval(eng.interval);
+        eng.stopTS = getNow();
+        updateStats();
+        document.getElementById('eng-start-btn').disabled = false;
+        document.getElementById('eng-stop-btn').disabled = true;
+    }
 
-        if ((key === 'e1' || key === 'e2') && !timers.e1.running && !timers.e2.running) {
-            clearInterval(timers.globalEng.interval);
-            timers.globalEng.interval = null;
-            timers.globalEng.stopTime = Date.now();
-            document.getElementById('eng-last-stop').textContent = getTimeOfDay();
-            let total = timers.globalEng.stopTime - timers.globalEng.startTime;
-            document.getElementById('eng-run-hms').textContent = formatHMS(total);
-            document.getElementById('eng-run-dec').textContent = (total / 3600000).toFixed(1);
-            updateMullah(total);
+    function startFl() {
+        if (!flt.startTS) flt.startTS = getNow();
+        flt.startTime = Date.now() - flt.elapsed;
+        flt.interval = setInterval(() => {
+            flt.elapsed = Date.now() - flt.startTime;
+            document.getElementById('fl-timer').textContent = fmtHMS(flt.elapsed);
+            updateStats();
+        }, 1000);
+        document.getElementById('fl-start-btn').disabled = true;
+        document.getElementById('fl-stop-btn').disabled = false;
+    }
+
+    function stopFl() {
+        clearInterval(flt.interval);
+        flt.stopTS = getNow();
+        updateStats();
+        document.getElementById('fl-start-btn').disabled = false;
+        document.getElementById('fl-stop-btn').disabled = true;
+    }
+
+    function saveLog() {
+        const log = JSON.parse(localStorage.getItem('pLog') || '[]');
+        log.push({
+            d: new Date().toLocaleDateString(),
+            eT: (eng.startTS || "--:--") + "-" + (eng.stopTS || "--:--"),
+            eM: document.getElementById('eng-mins').textContent,
+            eD: document.getElementById('eng-dec').textContent,
+            fT: (flt.startTS || "--:--") + "-" + (flt.stopTS || "--:--"),
+            fM: document.getElementById('fl-mins').textContent,
+            fD: document.getElementById('fl-dec').textContent
+        });
+        localStorage.setItem('pLog', JSON.stringify(log));
+        alert("Flight Saved to Memory.");
+    }
+
+    function toggleHistory(show) {
+        document.getElementById('history-page').style.display = show ? 'block' : 'none';
+        if (show) {
+            const log = JSON.parse(localStorage.getItem('pLog') || '[]');
+            document.getElementById('log-body').innerHTML = log.map(e => `
+                <tr>
+                    <td>${e.d}</td>
+                    <td class="sep">${e.eT}</td><td>${e.eM}</td><td>${e.eD}</td>
+                    <td class="sep">${e.fT}</td><td>${e.fM}</td><td>${e.fD}</td>
+                </tr>`).join('');
         }
-
-        document.getElementById(key + '-start').disabled = false;
-        document.getElementById(key + '-stop').disabled = true;
     }
 
-    function resetRow(key) {
-        stopTimer(key);
-        timers[key].elapsed = 0;
-        document.getElementById(key + '-display').textContent = "00:00:00";
-        if (key === 'fl') {
-            document.getElementById('up-time').textContent = "--:--";
-            document.getElementById('down-time').textContent = "--:--";
-            document.getElementById('fl-run-hms').textContent = "00:00:00";
-            document.getElementById('fl-run-dec').textContent = "0.0";
+    function clearLogs() {
+        if(confirm("Confirm: This will permanently delete ALL saved flight records.")) {
+            localStorage.removeItem('pLog');
+            toggleHistory(true);
         }
-        if ((key === 'e1' || key === 'e2') && !timers.e1.running && !timers.e2.running) {
-            timers.globalEng.startTime = null;
-            document.getElementById('eng-first-start').textContent = "--:--";
-            document.getElementById('eng-last-stop').textContent = "--:--";
-            document.getElementById('eng-run-hms').textContent = "00:00:00";
-            document.getElementById('eng-run-dec').textContent = "0.0";
-            document.getElementById('m-flt').textContent = "$0.00";
-            document.getElementById('m-tax').textContent = "$0.00";
-            document.getElementById('m-wife').textContent = "$0.00";
-            document.getElementById('m-phil').textContent = "$0.00";
-        }
-    }
-
-    function masterReset() {
-        ['e1', 'e2', 'fl'].forEach(key => resetRow(key));
-    }
-
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => { navigator.serviceWorker.register('sw-timer.js'); });
     }
 </script>
 </body>

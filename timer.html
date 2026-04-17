@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Phils Timer v1.13</title>
+    <title>Helicopter Flight Timer v1.15</title>
     <style>
         body { background: #fff; color: #000; font-family: sans-serif; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         h1 { font-size: 1.5rem; margin: 5px 0; border-bottom: 3px solid #000; width: 98%; max-width: 600px; text-align: center; }
@@ -28,10 +28,6 @@
         .total-hms { font-size: 1.3rem; font-family: monospace; display: block; border-top: 1px solid #aaa; margin-top: 5px; padding-top: 5px; }
         .total-dec { font-size: 1rem; font-family: monospace; color: #333; display: block; margin-top: 2px; }
 
-        .mullah-box { padding: 8px; background: #e9f7ef; border: 2px solid #28a745; border-radius: 8px; }
-        .mullah-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 0.75rem; }
-        .mullah-table td { font-family: monospace; font-size: 1rem; font-weight: bold; padding-top: 4px; }
-
         .action-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px; }
         .btn-act { padding: 15px 0; text-transform: uppercase; color: #fff; }
         .b-reset { background: #000; }
@@ -50,7 +46,7 @@
 <body>
 
     <div id="main-timer-page" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-        <h1>Phils Flight Timer</h1>
+        <h1>Helicopter Flight Timer</h1>
 
         <div class="ui-element timer-row">
             <div class="label">ENG 1</div>
@@ -95,13 +91,6 @@
             </div>
         </div>
 
-        <div class="ui-element mullah-box">
-            <table class="mullah-table">
-                <tr><th>Flt Pay</th><th>Tax</th><th>Wife</th><th>Phil</th></tr>
-                <tr><td id="m-flt">$0.00</td><td id="m-tax">$0.00</td><td id="m-wife">$0.00</td><td id="m-phil">$0.00</td></tr>
-            </table>
-        </div>
-
         <div class="ui-element action-row">
             <button class="btn-act b-reset" onclick="location.reload()">RESET</button>
             <button class="btn-act b-save" onclick="saveLog()">Save Log</button>
@@ -139,12 +128,6 @@
         document.getElementById('f-hms').textContent = fmtHMS(fMs);
         document.getElementById('f-dec').textContent = (fMs/3600000).toFixed(4) + " h";
         document.getElementById('f-ts').textContent = (t.fl.startTS || "--:--:--") + " to " + (t.fl.stopTS || "--:--:--");
-
-        let pay = (eMs/3600000)*265;
-        document.getElementById('m-flt').textContent = "$"+pay.toFixed(2);
-        document.getElementById('m-tax').textContent = "$"+(pay*0.5).toFixed(2);
-        document.getElementById('m-wife').textContent = "$"+(pay*0.5*0.75).toFixed(2);
-        document.getElementById('m-phil').textContent = "$"+(pay*0.5*0.25).toFixed(2);
     }
 
     function startT(k) {
@@ -175,7 +158,7 @@
     }
 
     function saveLog() {
-        const log = JSON.parse(localStorage.getItem('pLogV13') || '[]');
+        const log = JSON.parse(localStorage.getItem('heliLogV15') || '[]');
         let eMs = (t.gE.stop || (t.gE.start ? Date.now() : t.gE.start)) - t.gE.start || 0;
         let fMs = t.fl.e;
         log.push({
@@ -183,19 +166,19 @@
             eb: document.getElementById('e-ts').textContent, en: (eMs/3600000).toFixed(4),
             fb: document.getElementById('f-ts').textContent, fl: (fMs/3600000).toFixed(4)
         });
-        localStorage.setItem('pLogV13', JSON.stringify(log));
+        localStorage.setItem('heliLogV15', JSON.stringify(log));
         alert("Flight Saved.");
     }
 
     function toggleLog(show) {
         document.getElementById('log-page').style.display = show ? 'block' : 'none';
         if(show) {
-            const data = JSON.parse(localStorage.getItem('pLogV13') || '[]');
+            const data = JSON.parse(localStorage.getItem('heliLogV15') || '[]');
             document.getElementById('log-body').innerHTML = data.map(i => `<tr><td>${i.d}</td><td>${i.eb}</td><td>${i.en}</td><td>${i.fb}</td><td>${i.fl}</td></tr>`).join('');
         }
     }
 
-    function clearAll() { if(confirm("Nuke history?")) { localStorage.removeItem('pLogV13'); toggleLog(true); } }
+    function clearAll() { if(confirm("Nuke history?")) { localStorage.removeItem('heliLogV15'); toggleLog(true); } }
 </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'heli-v1.24';
+const CACHE_NAME = 'heli-v1.27';
 const ASSETS = [
   'index.html',
   'manifest.json',
@@ -13,13 +13,19 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  // Cleans up old caches (v1.26, etc) to save space on your phone
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+      );
+    })
+  );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
+    caches.match(event.request).then((response) => response || fetch(event.request))
   );
 });

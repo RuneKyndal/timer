@@ -1,4 +1,4 @@
-const CACHE_NAME = 'heli-v1.29';
+const CACHE_NAME = 'heli-v1.30';
 const ASSETS = [
   'index.html',
   'manifest.json',
